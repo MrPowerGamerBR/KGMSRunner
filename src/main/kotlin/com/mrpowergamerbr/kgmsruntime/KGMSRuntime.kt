@@ -23,10 +23,13 @@ class KGMSRuntime(
     private val screenshotAtFrames: Set<Int> = emptySet()
 ) {
     private var window: Long = 0
+    private lateinit var renderer: Renderer
     private lateinit var runner: GameRunner
     private val headless = screenshotAtFrames.isNotEmpty()
     private var framebufferScaleX = 1.0f
     private var framebufferScaleY = 1.0f
+    private var windowWidth = 0
+    private var windowHeight = 0
 
     // GM key code mapping (VK codes)
     private val glfwToGMKey = mapOf(
@@ -61,10 +64,12 @@ class KGMSRuntime(
         val gameData = FormReader("undertale/game.unx").read()
 
         println("\nInitializing window...")
-        initWindow(gameData.gen8.windowWidth, gameData.gen8.windowHeight, gameData.gen8.displayName)
+        windowWidth = gameData.gen8.windowWidth
+        windowHeight = gameData.gen8.windowHeight
+        initWindow(windowWidth, windowHeight, gameData.gen8.displayName)
 
         GL.createCapabilities()
-        val renderer = Renderer(gameData)
+        renderer = Renderer(gameData)
         renderer.framebufferScaleX = framebufferScaleX
         renderer.framebufferScaleY = framebufferScaleY
         renderer.initialize()
@@ -128,19 +133,31 @@ class KGMSRuntime(
             }
         }
 
+        // Set up framebuffer size callback to handle Wayland/HiDPI scaling changes
+        GLFW.glfwSetFramebufferSizeCallback(window) { _, fbWidth, fbHeight ->
+            framebufferScaleX = fbWidth.toFloat() / windowWidth
+            framebufferScaleY = fbHeight.toFloat() / windowHeight
+            if (::renderer.isInitialized) {
+                renderer.framebufferScaleX = framebufferScaleX
+                renderer.framebufferScaleY = framebufferScaleY
+            }
+        }
+
         GLFW.glfwMakeContextCurrent(window)
         GLFW.glfwSwapInterval(if (headless) 0 else 1)
 
-        // Query actual framebuffer size for HiDPI/Wayland scaling
+        if (!headless) {
+            GLFW.glfwShowWindow(window)
+        }
+
+        // Query framebuffer size AFTER showing the window - on Wayland the actual
+        // scale isn't known until the window is mapped to a surface
+        GLFW.glfwPollEvents()
         val fbW = IntArray(1)
         val fbH = IntArray(1)
         GLFW.glfwGetFramebufferSize(window, fbW, fbH)
         framebufferScaleX = fbW[0].toFloat() / width
         framebufferScaleY = fbH[0].toFloat() / height
-
-        if (!headless) {
-            GLFW.glfwShowWindow(window)
-        }
     }
 
     private fun headlessLoop(windowWidth: Int, windowHeight: Int) {
