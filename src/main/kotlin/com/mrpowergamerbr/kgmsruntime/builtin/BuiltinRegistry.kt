@@ -463,6 +463,49 @@ fun registerBuiltins(vm: VM) {
         else GMLValue.ZERO
     }
 
+    // ========== Collision ==========
+    f["collision_point"] = { v, args ->
+        val px = args[0].toReal()
+        val py = args[1].toReal()
+        val obj = args[2].toInt()
+        // args[3] = prec (ignored, bbox-only)
+        val notme = args[4].toBool()
+        val self = v.currentSelf
+        val runner = vm.runner!!
+        var result = -4.0 // noone
+        for (inst in runner.findInstancesByObjectOrId(obj)) {
+            if (notme && inst === self) continue
+            val bb = runner.computeBBox(inst) ?: continue
+            if (px >= bb.left && px <= bb.right && py >= bb.top && py <= bb.bottom) {
+                result = inst.id.toDouble()
+                break
+            }
+        }
+        GMLValue.of(result)
+    }
+
+    f["collision_rectangle"] = { v, args ->
+        val qx1 = args[0].toReal(); val qy1 = args[1].toReal()
+        val qx2 = args[2].toReal(); val qy2 = args[3].toReal()
+        val obj = args[4].toInt()
+        // args[5] = prec (ignored, bbox-only)
+        val notme = args[6].toBool()
+        val self = v.currentSelf
+        val runner = vm.runner!!
+        val ql = minOf(qx1, qx2); val qr = maxOf(qx1, qx2)
+        val qt = minOf(qy1, qy2); val qb = maxOf(qy1, qy2)
+        var result = -4.0 // noone
+        for (inst in runner.findInstancesByObjectOrId(obj)) {
+            if (notme && inst === self) continue
+            val bb = runner.computeBBox(inst) ?: continue
+            if (ql <= bb.right && qr >= bb.left && qt <= bb.bottom && qb >= bb.top) {
+                result = inst.id.toDouble()
+                break
+            }
+        }
+        GMLValue.of(result)
+    }
+
     // scr_gettext is handled by the real GML script (gml_Script_scr_gettext)
     // which reads from global.text_data_en ds_map populated by textdata_en script
 }

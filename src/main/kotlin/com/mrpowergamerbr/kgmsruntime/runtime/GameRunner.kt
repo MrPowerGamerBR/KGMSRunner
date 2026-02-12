@@ -382,6 +382,7 @@ class GameRunner(
         if (forceId >= nextInstanceId) nextInstanceId = forceId + 1
 
         val inst = Instance(id = id, objectIndex = objectDefId, x = x, y = y)
+        inst.gameRunner = this
         inst.xstart = x
         inst.ystart = y
         inst.xprevious = x
@@ -404,6 +405,19 @@ class GameRunner(
     fun destroyInstance(inst: Instance) {
         fireEvent(inst, EVENT_DESTROY, 0)
         inst.destroyed = true
+    }
+
+    data class BBox(val left: Double, val right: Double, val top: Double, val bottom: Double)
+
+    fun computeBBox(inst: Instance): BBox? {
+        val spriteIdx = if (inst.maskIndex >= 0) inst.maskIndex else inst.spriteIndex
+        if (spriteIdx !in gameData.sprites.indices) return null
+        val s = gameData.sprites[spriteIdx]
+        val x1 = inst.x + (s.marginLeft - s.originX) * inst.imageXscale
+        val x2 = inst.x + (s.marginRight - s.originX) * inst.imageXscale
+        val y1 = inst.y + (s.marginTop - s.originY) * inst.imageYscale
+        val y2 = inst.y + (s.marginBottom - s.originY) * inst.imageYscale
+        return BBox(minOf(x1, x2), maxOf(x1, x2), minOf(y1, y2), maxOf(y1, y2))
     }
 
     fun findInstancesByObjectOrId(targetId: Int): List<Instance> {

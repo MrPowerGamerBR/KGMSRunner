@@ -1,6 +1,8 @@
 package com.mrpowergamerbr.kgmsruntime.runtime
 
 import com.mrpowergamerbr.kgmsruntime.vm.GMLValue
+import kotlin.math.abs
+import kotlin.math.floor
 
 class Instance(
     val id: Int,
@@ -36,6 +38,7 @@ class Instance(
     var gravityDirection: Double = 270.0
 
     var maskIndex: Int = -1
+    var gameRunner: GameRunner? = null
 
     val alarm = IntArray(12) { -1 }
 
@@ -104,9 +107,18 @@ class Instance(
         "id" -> GMLValue.of(id.toDouble())
         "mask_index" -> GMLValue.of(maskIndex.toDouble())
         "alarm" -> GMLValue.ZERO // array access handled separately
-        "bbox_left", "bbox_right", "bbox_top", "bbox_bottom" -> GMLValue.ZERO
-        "sprite_width" -> GMLValue.ZERO
-        "sprite_height" -> GMLValue.ZERO
+        "bbox_left" -> { val bb = gameRunner?.computeBBox(this); GMLValue.of(if (bb != null) floor(bb.left) else 0.0) }
+        "bbox_right" -> { val bb = gameRunner?.computeBBox(this); GMLValue.of(if (bb != null) floor(bb.right) else 0.0) }
+        "bbox_top" -> { val bb = gameRunner?.computeBBox(this); GMLValue.of(if (bb != null) floor(bb.top) else 0.0) }
+        "bbox_bottom" -> { val bb = gameRunner?.computeBBox(this); GMLValue.of(if (bb != null) floor(bb.bottom) else 0.0) }
+        "sprite_width" -> {
+            val s = gameRunner?.gameData?.sprites?.getOrNull(spriteIndex)
+            GMLValue.of(if (s != null) (s.width * abs(imageXscale)) else 0.0)
+        }
+        "sprite_height" -> {
+            val s = gameRunner?.gameData?.sprites?.getOrNull(spriteIndex)
+            GMLValue.of(if (s != null) (s.height * abs(imageYscale)) else 0.0)
+        }
         else -> variables[name] ?: GMLValue.ZERO
     }
 

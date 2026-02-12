@@ -200,6 +200,10 @@ class FormReader(private val filePath: String) {
             val namePtr = buf.getInt(ptr)
             val width = buf.getInt(ptr + 4)
             val height = buf.getInt(ptr + 8)
+            val marginLeft = buf.getInt(ptr + 0x0C)
+            val marginRight = buf.getInt(ptr + 0x10)
+            val marginBottom = buf.getInt(ptr + 0x14)
+            val marginTop = buf.getInt(ptr + 0x18)
             val originX = buf.getInt(ptr + 0x30)
             val originY = buf.getInt(ptr + 0x34)
             val subImageCount = buf.getInt(ptr + 0x38)
@@ -214,6 +218,10 @@ class FormReader(private val filePath: String) {
                     name = readStringRef(namePtr),
                     width = width,
                     height = height,
+                    marginLeft = marginLeft,
+                    marginRight = marginRight,
+                    marginTop = marginTop,
+                    marginBottom = marginBottom,
                     originX = originX,
                     originY = originY,
                     tpagIndices = tpagIndices,
