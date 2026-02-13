@@ -23,8 +23,14 @@ import org.lwjgl.system.MemoryUtil
 class KGMSRuntime(
     private val screenshotPattern: String? = null,
     private val screenshotAtFrames: Set<Int> = emptySet(),
-    private val startRoom: String? = null
+    private val startRoom: String? = null,
+    private val debugObj: Set<String>
 ) {
+    companion object {
+        // yay static abuse
+        lateinit var debugObj: Set<String>
+    }
+
     private var window: Long = 0
     private lateinit var renderer: Renderer
     private lateinit var runner: GameRunner
@@ -61,6 +67,8 @@ class KGMSRuntime(
     )
 
     fun run() {
+        KGMSRuntime.debugObj = debugObj
+
         println("KGMSRuntime - GameMaker: Studio Bytecode 16 Runner")
         println("Loading game data...")
 

@@ -12,6 +12,7 @@ class KGMSRuntimeCommand : CliktCommand(name = "kgmsruntime") {
     private val screenshotAtFrame by option("--screenshot-at-frame", help = "Frame number to capture screenshot").int().multiple()
     private val room by option("--room", help = "Start at a specific room (name or index)")
     private val listRooms by option("--list-rooms", help = "List all rooms and exit").flag()
+    private val debugObj by option("--debug-obj", help = "Debug object name").multiple()
 
     override fun run() {
         if (listRooms) {
@@ -21,10 +22,12 @@ class KGMSRuntimeCommand : CliktCommand(name = "kgmsruntime") {
             }
             return
         }
+
         KGMSRuntime(
             screenshotPattern = screenshot,
             screenshotAtFrames = screenshotAtFrame.toSet(),
-            startRoom = room
+            startRoom = room,
+            debugObj = debugObj.toSet()
         ).run()
     }
 }

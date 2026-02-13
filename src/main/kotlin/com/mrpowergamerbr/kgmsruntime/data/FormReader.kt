@@ -1,5 +1,6 @@
 package com.mrpowergamerbr.kgmsruntime.data
 
+import com.mrpowergamerbr.kgmsruntime.KGMSRuntime
 import java.io.RandomAccessFile
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -424,7 +425,7 @@ class FormReader(private val filePath: String) {
             val outerCount = buf.getInt(eventsStart)
             val events = ArrayList<List<EventEntry>>(outerCount)
             val objName = readStringRef(namePtr)
-            val isDebugObj = objName == "obj_time" || objName == "obj_screen"
+            val isDebugObj = objName in KGMSRuntime.debugObj
 
             if (isDebugObj) {
                 println("  DEBUG OBJT '$objName': ptr=0x${ptr.toString(16)}, physics fields at +0x20:")
