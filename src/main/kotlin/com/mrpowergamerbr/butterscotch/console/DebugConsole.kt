@@ -26,6 +26,7 @@ class DebugConsole(
     private val commandHistory = mutableListOf<String>()
     private var historyIndex = -1
 
+    private var scrollOffset = 0  // How many lines scrolled up from the bottom
     private var consoleTexture = -1
     private var dirty = true
 
@@ -106,6 +107,16 @@ class DebugConsole(
                 }
                 return true
             }
+            GLFW.GLFW_KEY_PAGE_UP -> {
+                scrollOffset = minOf(scrollOffset + 5, maxOf(0, outputLines.size - 1))
+                dirty = true
+                return true
+            }
+            GLFW.GLFW_KEY_PAGE_DOWN -> {
+                scrollOffset = maxOf(scrollOffset - 5, 0)
+                dirty = true
+                return true
+            }
         }
         return false
     }
@@ -113,9 +124,10 @@ class DebugConsole(
     fun addOutput(line: String) {
         outputLines.add(line)
         // Cap scrollback
-        while (outputLines.size > 50) {
+        while (outputLines.size > 500) {
             outputLines.removeAt(0)
         }
+        scrollOffset = 0
         dirty = true
     }
 
@@ -181,10 +193,11 @@ class DebugConsole(
         // Output lines above the input line, drawn bottom-up
         g.color = Color(200, 200, 200)
         val maxVisibleLines = (inputY - lineH - padding) / lineH
-        val startIdx = maxOf(0, outputLines.size - maxVisibleLines)
+        val bottomIdx = outputLines.size - 1 - scrollOffset
+        val startIdx = maxOf(0, bottomIdx - maxVisibleLines + 1)
         var y = inputY - lineH
-        for (i in outputLines.size - 1 downTo startIdx) {
-            if (y < padding) break
+        for (i in bottomIdx downTo startIdx) {
+            if (i < 0 || y < padding) break
             g.drawString(outputLines[i], padding, y)
             y -= lineH
         }
