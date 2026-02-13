@@ -193,7 +193,7 @@ class VM(
 
         val entryName = gameData.codeEntries[codeEntryIndex].name
         // println("  EXEC: $entryName (idx=$codeEntryIndex)")
-        val tracing = false
+        val tracing = KGMSRuntime.traceInstructions.contains("*") || entryName in KGMSRuntime.traceInstructions
         val prevTrace = traceCodeEntry
 
         val stack = ArrayDeque<GMLValue>()
