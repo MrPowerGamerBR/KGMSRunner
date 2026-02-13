@@ -154,15 +154,24 @@ class GameRunner(
         }
 
         // Check "Outside Room" event (Other 0)
-        val roomW = currentRoom?.width ?: 0
-        val roomH = currentRoom?.height ?: 0
+        // GM fires this when the ENTIRE bounding box is outside the room
+        val roomW = (currentRoom?.width ?: 0).toDouble()
+        val roomH = (currentRoom?.height ?: 0).toDouble()
         for (inst in ArrayList(instances)) {
             if (inst.destroyed) continue
-            if (inst.x < 0 || inst.x > roomW || inst.y < 0 || inst.y > roomH) {
+            val bbox = computeBBox(inst)
+            val isOutside = if (bbox != null) {
+                bbox.right < 0 || bbox.left > roomW || bbox.bottom < 0 || bbox.top > roomH
+            } else {
+                inst.x < 0 || inst.x > roomW || inst.y < 0 || inst.y > roomH
+            }
+            if (isOutside) {
                 if (inst.hasBeenMarkedAsOutsideRoom) continue
 
                 inst.hasBeenMarkedAsOutsideRoom = true
                 fireEvent(inst, EVENT_OTHER, OTHER_OUTSIDE_ROOM)
+            } else {
+                inst.hasBeenMarkedAsOutsideRoom = false
             }
         }
 
