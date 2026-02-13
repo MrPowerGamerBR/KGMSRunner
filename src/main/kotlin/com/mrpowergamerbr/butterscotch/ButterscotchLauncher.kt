@@ -24,6 +24,7 @@ class ButterscotchCLICommand : CliktCommand(name = "butterscotch") {
     private val traceInstanceVars by option("--trace-instance-vars", help = "Trace instance variable writes. Supports: varname, obj.varname, obj.*, * (VERY NOISY)").multiple()
     private val tracePaths by option("--trace-paths", help = "Trace path following for a specific object, can be set to \"*\" to log all objects").multiple()
     private val drawPaths by option("--draw-paths", help = "Draw path overlays on screen for all instances following paths").flag()
+    private val drawMasks by option("--draw-masks", help = "Draw collision boxes: green=non-precise, blue=precise (50% opacity)").flag()
     private val alwaysLogUnknownInstructions by option("--always-log-unknown-instructions", help = "Always log unknown instructions instead of only logging once").flag()
 
     private val debug by option("--debug", help = "Enable debug mode").flag()
@@ -43,6 +44,7 @@ class ButterscotchCLICommand : CliktCommand(name = "butterscotch") {
         Butterscotch.traceInstanceVars = traceInstanceVars.toSet()
         Butterscotch.tracePaths = tracePaths.toSet()
         Butterscotch.drawPaths = drawPaths
+        Butterscotch.drawMasks = drawMasks
         Butterscotch.alwaysLogUnknownInstructions = alwaysLogUnknownInstructions
         Butterscotch.debug = debug
 

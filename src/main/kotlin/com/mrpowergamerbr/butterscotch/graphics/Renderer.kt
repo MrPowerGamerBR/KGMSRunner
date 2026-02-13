@@ -415,6 +415,42 @@ void main() {
         }
     }
 
+    fun drawMaskPixels(
+        mask: ByteArray, spriteWidth: Int, spriteHeight: Int,
+        originX: Int, originY: Int,
+        instX: Double, instY: Double,
+        xscale: Double, yscale: Double,
+        r: Float, g: Float, b: Float, a: Float
+    ) {
+        glBindTexture(GL_TEXTURE_2D, 0)
+        glUniform1i(uHasTexture, 0)
+
+        vertexCount = 0
+        val stride = (spriteWidth + 7) / 8
+        val pixW = xscale
+        val pixH = yscale
+
+        for (row in 0 until spriteHeight) {
+            for (col in 0 until spriteWidth) {
+                val byteIdx = row * stride + col / 8
+                if (byteIdx >= mask.size) continue
+                val bit = (mask[byteIdx].toInt() shr (7 - col % 8)) and 1
+                if (bit == 0) continue
+
+                val wx = instX + (col - originX) * xscale
+                val wy = instY + (row - originY) * yscale
+
+                if (vertexCount + 6 > maxVertices) {
+                    flushVertices(GL_TRIANGLES)
+                    vertexCount = 0
+                }
+                putQuad(wx, wy, wx + pixW, wy + pixH, 0f, 0f, 0f, 0f, r, g, b, a)
+            }
+        }
+
+        flushVertices(GL_TRIANGLES)
+    }
+
     fun drawRawTexture(textureId: Int, x: Double, y: Double, width: Double, height: Double, windowWidth: Int, windowHeight: Int, alpha: Float = 1f) {
         // Set up full-window orthographic projection (pixel coordinates, y-down)
         projectionMatrix.identity().ortho(0f, windowWidth.toFloat(), windowHeight.toFloat(), 0f, -1f, 1f)

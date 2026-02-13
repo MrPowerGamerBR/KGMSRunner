@@ -23,6 +23,7 @@ Butterscotch has some CLI parameters and debug features that are useful when deb
 * `--trace-instance-vars`: Traces instance variable writes. Supports: `varname`, `obj.varname`, `obj.*`, `*` (VERY NOISY). Example: `--trace-instance-vars obj_shaker.hshake`
 * `--trace-paths`: Traces path following for a specific object, example: `--trace-paths obj_toroverworld3`. Can also trace all objects with `--trace-paths *`
 * `--draw-paths`: Draw path overlays on screen for all instances following paths
+* `--draw-masks`: Draw masks (collisions) overlays on screen. Green overlays are masks without precise collisions (AABB), while blue overlays are masks with precise collisions.
 * `--always-log-unknown-instructions`: Always log unknown instructions instead of only logging once
 * `--seed`: Forces the game to always use a specific RNG seed, even if the game sets a custom seed with `random_set_seed` or if `randomize` is called, example `--seed 40028922`. Useful for reproducing bugs.
 

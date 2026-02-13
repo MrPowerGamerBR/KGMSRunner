@@ -39,6 +39,7 @@ class Butterscotch(
         lateinit var traceInstanceVars: Set<String>
         lateinit var tracePaths: Set<String>
         var drawPaths = false
+        var drawMasks = false
         var alwaysLogUnknownInstructions = false
         var debug = false
     }

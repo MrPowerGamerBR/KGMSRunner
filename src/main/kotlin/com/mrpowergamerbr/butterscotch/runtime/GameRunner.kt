@@ -279,6 +279,7 @@ class GameRunner(
 
                 // Draw debug overlays on top
                 if (Butterscotch.drawPaths) drawPathOverlays(room)
+                if (Butterscotch.drawMasks) drawMaskOverlays()
             }
         } else {
             renderer.currentView = 0
@@ -296,7 +297,43 @@ class GameRunner(
             drawRoomBackgrounds(room, true)
 
             if (Butterscotch.drawPaths) drawPathOverlays(room)
+            if (Butterscotch.drawMasks) drawMaskOverlays()
         }
+    }
+
+    private fun drawMaskOverlays() {
+        val savedColor = renderer.drawColor
+        val savedAlpha = renderer.drawAlpha
+
+        for (inst in instances) {
+            if (inst.destroyed) continue
+            val spriteIdx = if (inst.maskIndex >= 0) inst.maskIndex else inst.spriteIndex
+            val sprite = gameData.sprites.getOrNull(spriteIdx) ?: continue
+            val isPrecise = sprite.collisionMaskType == 1 && sprite.masks.isNotEmpty()
+
+            if (isPrecise) {
+                // Draw per-pixel mask in blue (BGR: 0xFF0000)
+                val frameIndex = inst.imageIndex.toInt()
+                val maskIdx = if (sprite.masks.size > 1) frameIndex % sprite.masks.size else 0
+                val mask = sprite.masks[maskIdx]
+                renderer.drawMaskPixels(
+                    mask, sprite.width, sprite.height,
+                    sprite.originX, sprite.originY,
+                    inst.x, inst.y,
+                    inst.imageXscale, inst.imageYscale,
+                    0f, 0f, 1f, 0.5f
+                )
+            } else {
+                // Draw bbox rectangle in green (BGR: 0x00FF00)
+                val bbox = computeBBox(inst) ?: continue
+                renderer.drawColor = 0x00FF00
+                renderer.drawAlpha = 0.5
+                renderer.drawRectangle(bbox.left, bbox.top, bbox.right, bbox.bottom, false)
+            }
+        }
+
+        renderer.drawColor = savedColor
+        renderer.drawAlpha = savedAlpha
     }
 
     private fun drawPathOverlays(room: RoomData) {
