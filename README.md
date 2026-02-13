@@ -5,18 +5,21 @@
 >
 > If you want a proper well made GameMaker runtime alternative, check out [OpenGM](https://github.com/misternebula/OpenGM)
 
-## Screenshots
+## CLI parameters
 
-<img src="screenshots/20260212_202318_KGMSRuntime - UNDERTALE.png">
+KGMSRunner has some CLI parameters that are useful when debugging the runner
 
-(The game does not switch between the intro scenes correctly)
+* `--screenshot file-%s.png`: Saves a screenshot of the game to the specified file, the `%s` is the current frame index
+* `--screenshot-at-frame FrameIndex`: Saves a screenshot of the game at the specified frame, can be used multiple times
+* `--room RoomNameOrIndex`: Starts the game directly on the desired room, example: `--room room_ruins1`
+* `--list-rooms`: Prints all the rooms to the console
+* `--debug-obj`: Prints information about the desired object
+* `--trace-calls`: Traces functions calls made by a specific object, example: `--trace-calls obj_friendypellet`. Can also trace all calls with `--trace-calls *`
+* `--ignore-function-traced-calls`: Ignores specific function calls when tracing
 
-<img src="screenshots/20260212_202901_KGMSRuntime - UNDERTALE.png">
+## Undertale running via KGMSRunner
 
-<img src="screenshots/20260212_202909_KGMSRuntime - UNDERTALE.png">
+It is VERY buggy... but I will be honest, it is kinda impressive that it *does* run.
 
-<img src="screenshots/20260212_202913_KGMSRuntime - UNDERTALE.png">
+https://github.com/user-attachments/assets/eb11ff6e-88c7-4008-9262-d33db9bee8fa
 
-<img src="screenshots/20260212_202918_KGMSRuntime - UNDERTALE.png">
-
-(Game stops working after naming the fallen human, it does render the ruins, but you can't move)
