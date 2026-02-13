@@ -406,6 +406,16 @@ fun registerBuiltins(vm: VM) {
         }
         GMLValue.ZERO
     }
+    f["event_perform"] = { v, args ->
+        val self = v.currentSelf
+        if (self != null) {
+            val eventType = args[0].toInt()
+            val eventNumb = args[1].toInt()
+            vm.runner!!.fireEvent(self, eventType, eventNumb)
+        }
+        GMLValue.ZERO
+    }
+
     f["variable_global_exists"] = { _, args ->
         GMLValue.of(args[0].toStr() in vm.runner!!.globalVariables)
     }
