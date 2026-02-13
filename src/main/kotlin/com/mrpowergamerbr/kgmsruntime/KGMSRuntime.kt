@@ -18,7 +18,8 @@ import org.lwjgl.system.MemoryUtil
 class KGMSRuntime(
     private val screenshotPattern: String? = null,
     private val screenshotAtFrames: Set<Int> = emptySet(),
-    private val startRoom: String? = null
+    private val startRoom: String? = null,
+    private val speedMultiplier: Double
 ) {
     companion object {
         // yay static abuse
@@ -251,7 +252,7 @@ class KGMSRuntime(
 
     private fun gameLoop() {
         val roomSpeed = 30 // Undertale uses 30 FPS
-        val targetFrameTime = 1.0 / roomSpeed
+        val targetFrameTime = 1.0 / (roomSpeed * speedMultiplier)
         var lastTime = GLFW.glfwGetTime()
         var accumulator = 0.0
         var frameCount = 0

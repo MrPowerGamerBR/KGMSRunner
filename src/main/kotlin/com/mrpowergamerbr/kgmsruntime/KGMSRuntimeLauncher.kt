@@ -1,9 +1,11 @@
 package com.mrpowergamerbr.kgmsruntime
 
 import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.types.double
 import com.github.ajalt.clikt.parameters.types.int
 import com.mrpowergamerbr.kgmsruntime.data.FormReader
 
@@ -16,6 +18,7 @@ class KGMSRuntimeCommand : CliktCommand(name = "kgmsruntime") {
     private val traceCalls by option("--trace-calls", help = "Print all function calls of a specific object, can be set to \"*\" to log all objects").multiple()
     private val ignoreFunctionTracedCalls by option("--ignore-function-traced-calls", help = "Ignore specific function when tracing calls, useful to trim down logs").multiple()
     private val debug by option("--debug", help = "Enable debug mode").flag()
+    private val speed by option("--speed", help = "Game speed multiplier (e.g. 2.0 = twice as fast)").double().default(1.0)
 
     override fun run() {
         KGMSRuntime.debugObj = debugObj.toSet()
@@ -34,7 +37,8 @@ class KGMSRuntimeCommand : CliktCommand(name = "kgmsruntime") {
         KGMSRuntime(
             screenshotPattern = screenshot,
             screenshotAtFrames = screenshotAtFrame.toSet(),
-            startRoom = room
+            startRoom = room,
+            speedMultiplier = speed
         ).run()
     }
 }
