@@ -65,11 +65,11 @@ class GameRunner(
         const val OTHER_ANIMATION_END = 7
     }
 
-    fun initialize() {
+    fun initialize(startRoomOverride: Int? = null) {
         vm.runner = this
 
-        // Load first room
-        val firstRoom = gameData.gen8.roomOrder.firstOrNull() ?: 0
+        // Load first room (or the overridden start room)
+        val firstRoom = startRoomOverride ?: (gameData.gen8.roomOrder.firstOrNull() ?: 0)
         gotoRoom(firstRoom)
     }
 

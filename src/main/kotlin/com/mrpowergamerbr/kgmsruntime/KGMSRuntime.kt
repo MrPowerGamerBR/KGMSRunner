@@ -1,11 +1,13 @@
 package com.mrpowergamerbr.kgmsruntime
 
 import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.int
 import com.mrpowergamerbr.kgmsruntime.builtin.registerBuiltins
 import com.mrpowergamerbr.kgmsruntime.data.FormReader
+import com.mrpowergamerbr.kgmsruntime.data.GameData
 import com.mrpowergamerbr.kgmsruntime.graphics.Renderer
 import com.mrpowergamerbr.kgmsruntime.runtime.GameRunner
 import com.mrpowergamerbr.kgmsruntime.vm.VM
@@ -20,7 +22,8 @@ import org.lwjgl.system.MemoryUtil
 
 class KGMSRuntime(
     private val screenshotPattern: String? = null,
-    private val screenshotAtFrames: Set<Int> = emptySet()
+    private val screenshotAtFrames: Set<Int> = emptySet(),
+    private val startRoom: String? = null
 ) {
     private var window: Long = 0
     private lateinit var renderer: Renderer
@@ -79,7 +82,9 @@ class KGMSRuntime(
 
         runner = GameRunner(gameData, vm, renderer)
         vm.initialize()
-        runner.initialize()
+
+        val startRoomIndex = resolveStartRoom(gameData)
+        runner.initialize(startRoomIndex)
 
         println("\nStarting game loop...")
         if (headless) {
@@ -93,6 +98,25 @@ class KGMSRuntime(
         GLFW.glfwDestroyWindow(window)
         GLFW.glfwTerminate()
         GLFW.glfwSetErrorCallback(null)?.free()
+    }
+
+    private fun resolveStartRoom(gameData: GameData): Int? {
+        val room = startRoom ?: return null
+        // Try as integer index first
+        room.toIntOrNull()?.let { index ->
+            if (index in gameData.rooms.indices) {
+                println("Starting at room index $index (${gameData.rooms[index].name})")
+                return index
+            }
+            error("Room index $index is out of range (0..${gameData.rooms.size - 1})")
+        }
+        // Try as room name
+        val index = gameData.rooms.indexOfFirst { it.name == room }
+        if (index >= 0) {
+            println("Starting at room '$room' (index $index)")
+            return index
+        }
+        error("Room '$room' not found. Use --list-rooms to see available rooms.")
     }
 
     private fun initWindow(width: Int, height: Int, title: String) {
@@ -265,11 +289,21 @@ class KGMSRuntime(
 class KGMSRuntimeCommand : CliktCommand(name = "kgmsruntime") {
     private val screenshot by option("--screenshot", help = "Screenshot filename pattern (%s = frame number)")
     private val screenshotAtFrame by option("--screenshot-at-frame", help = "Frame number to capture screenshot").int().multiple()
+    private val room by option("--room", help = "Start at a specific room (name or index)")
+    private val listRooms by option("--list-rooms", help = "List all rooms and exit").flag()
 
     override fun run() {
+        if (listRooms) {
+            val gameData = FormReader("undertale/game.unx").read()
+            for ((i, room) in gameData.rooms.withIndex()) {
+                println("$i: ${room.name} (${room.width}x${room.height})")
+            }
+            return
+        }
         KGMSRuntime(
             screenshotPattern = screenshot,
-            screenshotAtFrames = screenshotAtFrame.toSet()
+            screenshotAtFrames = screenshotAtFrame.toSet(),
+            startRoom = room
         ).run()
     }
 }
