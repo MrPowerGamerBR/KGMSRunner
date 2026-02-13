@@ -1,6 +1,7 @@
 package com.mrpowergamerbr.butterscotch
 
 import com.mrpowergamerbr.butterscotch.builtin.registerBuiltins
+import com.mrpowergamerbr.butterscotch.console.DebugConsole
 import com.mrpowergamerbr.butterscotch.data.FormReader
 import com.mrpowergamerbr.butterscotch.data.GameData
 import com.mrpowergamerbr.butterscotch.graphics.Renderer
@@ -51,6 +52,7 @@ class Butterscotch(
     private var windowHeight = 0
     private var debugPaused = false
     private var debugStepOneFrame = false
+    lateinit var console: DebugConsole
 
     // GM key code mapping (VK codes)
     private val glfwToGMKey = mapOf(
@@ -99,6 +101,9 @@ class Butterscotch(
         registerBuiltins(vm)
 
         runner = GameRunner(gameData, vm, renderer)
+        if (debug) {
+            console = DebugConsole(runner, windowWidth, windowHeight)
+        }
         vm.initialize()
 
         // Set up input playback/recording
@@ -127,6 +132,7 @@ class Butterscotch(
             println("Input recording saved to $recordInputsPath (${runner.inputRecording!!.size} frames with input)")
         }
 
+        console.dispose()
         renderer.dispose()
         Callbacks.glfwFreeCallbacks(window)
         GLFW.glfwDestroyWindow(window)
@@ -171,6 +177,23 @@ class Butterscotch(
         if (!headless) {
             GLFW.glfwSetKeyCallback(window) { _, key, _, action, _ ->
                 if (debug) {
+                    // Toggle console with grave accent
+                    if (key == GLFW.GLFW_KEY_GRAVE_ACCENT && action == GLFW.GLFW_PRESS) {
+                        // We ONLY want to be able to close the console if the input buffer is empty
+                        // Because if not, we aren't able to type the grave accent key without closing the console!
+                        if (console.inputBuffer.isEmpty())
+                            console.toggle()
+                        return@glfwSetKeyCallback
+                    }
+
+                    // When console is open, route keys to it and suppress game input
+                    if (console.isOpen == true) {
+                        if (action == GLFW.GLFW_PRESS || action == GLFW.GLFW_REPEAT) {
+                            console.onKey(key)
+                        }
+                        return@glfwSetKeyCallback
+                    }
+
                     // Debug keys: room navigation
                     if (action == GLFW.GLFW_PRESS) {
                         when (key) {
@@ -217,6 +240,13 @@ class Butterscotch(
                 when (action) {
                     GLFW.GLFW_PRESS -> runner.onKeyDown(gmKey)
                     GLFW.GLFW_RELEASE -> runner.onKeyUp(gmKey)
+                }
+            }
+
+            // Character callback for console text input
+            GLFW.glfwSetCharCallback(window) { _, codepoint ->
+                if (console.isOpen && !console.toggledConsoleOnThisFrame) {
+                    console.onChar(codepoint)
                 }
             }
 
@@ -324,6 +354,9 @@ class Butterscotch(
 
                 GL11.glClear(GL11.GL_COLOR_BUFFER_BIT)
                 runner.draw()
+
+                // Draw console overlay on top of everything
+                console.render(renderer)
 
                 // Clear per-frame input AFTER both step and draw
                 runner.clearPerFrameInput()

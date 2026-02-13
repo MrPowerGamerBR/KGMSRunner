@@ -415,6 +415,23 @@ void main() {
         }
     }
 
+    fun drawRawTexture(textureId: Int, x: Double, y: Double, width: Double, height: Double, windowWidth: Int, windowHeight: Int, alpha: Float = 1f) {
+        // Set up full-window orthographic projection (pixel coordinates, y-down)
+        projectionMatrix.identity().ortho(0f, windowWidth.toFloat(), windowHeight.toFloat(), 0f, -1f, 1f)
+        uploadProjectionMatrix()
+        modelMatrix.identity()
+        uploadModelMatrix()
+
+        glViewport(0, 0, (windowWidth * framebufferScaleX).toInt(), (windowHeight * framebufferScaleY).toInt())
+
+        glBindTexture(GL_TEXTURE_2D, textureId)
+        glUniform1i(uHasTexture, 1)
+
+        vertexCount = 0
+        putQuad(x, y, x + width, y + height, 0f, 0f, 1f, 1f, 1f, 1f, 1f, alpha)
+        flushVertices(GL_TRIANGLES)
+    }
+
     fun drawLineStrip(points: List<Pair<Double, Double>>, r: Float, g: Float, b: Float, a: Float) {
         if (points.size < 2) return
 
