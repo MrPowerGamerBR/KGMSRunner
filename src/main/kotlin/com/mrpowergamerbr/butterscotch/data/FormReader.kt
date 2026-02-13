@@ -444,7 +444,7 @@ class FormReader(private val filePath: String) {
             val outerCount = buf.getInt(eventsStart)
             val events = ArrayList<List<EventEntry>>(outerCount)
             val objName = readStringRef(namePtr)
-            val isDebugObj = objName in Butterscotch.debugObj
+            val isDebugObj = objName in Butterscotch.debugObj || i.toString() in Butterscotch.debugObj
 
             if (isDebugObj) {
                 println("  DEBUG OBJT '$objName': ptr=0x${ptr.toString(16)}, physics fields at +0x20:")
