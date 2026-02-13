@@ -2,7 +2,11 @@ package com.mrpowergamerbr.kgmsruntime.runtime
 
 import com.mrpowergamerbr.kgmsruntime.vm.GMLValue
 import kotlin.math.abs
+import kotlin.math.atan2
+import kotlin.math.cos
 import kotlin.math.floor
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 class Instance(
     val id: Int,
@@ -147,10 +151,26 @@ class Instance(
             "yprevious" -> yprevious = value.toReal()
             "xstart" -> xstart = value.toReal()
             "ystart" -> ystart = value.toReal()
-            "hspeed" -> hspeed = value.toReal()
-            "vspeed" -> vspeed = value.toReal()
-            "speed" -> speed = value.toReal()
-            "direction" -> direction = value.toReal()
+            "hspeed" -> {
+                hspeed = value.toReal()
+                speed = sqrt(hspeed * hspeed + vspeed * vspeed)
+                direction = (Math.toDegrees(atan2(-vspeed, hspeed)) + 360) % 360
+            }
+            "vspeed" -> {
+                vspeed = value.toReal()
+                speed = sqrt(hspeed * hspeed + vspeed * vspeed)
+                direction = (Math.toDegrees(atan2(-vspeed, hspeed)) + 360) % 360
+            }
+            "speed" -> {
+                speed = value.toReal()
+                hspeed = speed * cos(Math.toRadians(direction))
+                vspeed = -speed * sin(Math.toRadians(direction))
+            }
+            "direction" -> {
+                direction = value.toReal()
+                hspeed = speed * cos(Math.toRadians(direction))
+                vspeed = -speed * sin(Math.toRadians(direction))
+            }
             "friction" -> friction = value.toReal()
             "gravity" -> gravity = value.toReal()
             "gravity_direction" -> gravityDirection = value.toReal()

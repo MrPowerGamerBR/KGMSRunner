@@ -420,6 +420,13 @@ class VM(
                                     // Check builtin arrays first (view_xview, etc.)
                                     if (isArray && setBuiltinArrayElement(v.name, arrayIdx, value)) {
                                         // handled
+                                    } else if (effectiveInstType >= 0) {
+                                        // Object ID: GM sets variable on ALL instances of this object
+                                        val targets = runner!!.findInstancesByObjectOrId(effectiveInstType)
+                                        for (target in targets) {
+                                            if (isArray) target.setArrayElement(v.name, arrayIdx, value)
+                                            else target.setBuiltinOrVar(v.name, value)
+                                        }
                                     } else {
                                         val target = resolveInstance(effectiveInstType, currentSelf, currentOther)
                                         if (target != null) {
