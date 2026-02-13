@@ -6,6 +6,7 @@ import com.mrpowergamerbr.butterscotch.vm.VM
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
+import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.sin
 import kotlin.math.sqrt
@@ -139,9 +140,9 @@ class Instance(
         "room_persistent" -> GMLValue.of(gameRunner?.roomPersistentFlags?.get(gameRunner!!.currentRoomIndex) == true)
         "alarm" -> GMLValue.ZERO // array access handled separately
         "bbox_left" -> { val bb = gameRunner?.computeBBox(this); GMLValue.of(if (bb != null) floor(bb.left) else 0.0) }
-        "bbox_right" -> { val bb = gameRunner?.computeBBox(this); GMLValue.of(if (bb != null) floor(bb.right) else 0.0) }
+        "bbox_right" -> { val bb = gameRunner?.computeBBox(this); GMLValue.of(if (bb != null) ceil(bb.right - 1) else 0.0) }
         "bbox_top" -> { val bb = gameRunner?.computeBBox(this); GMLValue.of(if (bb != null) floor(bb.top) else 0.0) }
-        "bbox_bottom" -> { val bb = gameRunner?.computeBBox(this); GMLValue.of(if (bb != null) floor(bb.bottom) else 0.0) }
+        "bbox_bottom" -> { val bb = gameRunner?.computeBBox(this); GMLValue.of(if (bb != null) ceil(bb.bottom - 1) else 0.0) }
         "sprite_width" -> {
             val s = gameRunner?.gameData?.sprites?.getOrNull(spriteIndex)
             GMLValue.of(if (s != null) (s.width * abs(imageXscale)) else 0.0)

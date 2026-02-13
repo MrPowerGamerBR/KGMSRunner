@@ -659,7 +659,7 @@ fun registerBuiltins(vm: VM) {
         for (inst in runner.findInstancesByObjectOrId(obj)) {
             if (notme && inst === self) continue
             val bb = runner.computeBBox(inst) ?: continue
-            if (px >= bb.left && px <= bb.right && py >= bb.top && py <= bb.bottom) {
+            if (px >= bb.left && px < bb.right && py >= bb.top && py < bb.bottom) {
                 result = inst.id.toDouble()
                 break
             }
@@ -681,7 +681,7 @@ fun registerBuiltins(vm: VM) {
         for (inst in runner.findInstancesByObjectOrId(obj)) {
             if (notme && inst === self) continue
             val bb = runner.computeBBox(inst) ?: continue
-            if (ql <= bb.right && qr >= bb.left && qt <= bb.bottom && qb >= bb.top) {
+            if (ql < bb.right && qr >= bb.left && qt < bb.bottom && qb >= bb.top) {
                 result = inst.id.toDouble()
                 break
             }

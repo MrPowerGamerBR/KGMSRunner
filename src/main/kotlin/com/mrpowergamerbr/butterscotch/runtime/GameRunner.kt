@@ -459,7 +459,7 @@ class GameRunner(
                     if (other.destroyed || other === inst) continue
                     if (other.objectIndex != targetObjId && !isChildOf(other.objectIndex, targetObjId)) continue
                     val otherBBox = computeBBox(other) ?: continue
-                    // AABB overlap test
+                    // AABB overlap test (bbox values are exclusive-end on right/bottom)
                     if (instBBox.left < otherBBox.right && instBBox.right > otherBBox.left &&
                         instBBox.top < otherBBox.bottom && instBBox.bottom > otherBBox.top) {
                         fireEvent(inst, EVENT_COLLISION, targetObjId, other)
@@ -915,14 +915,24 @@ class GameRunner(
 
     data class BBox(val left: Double, val right: Double, val top: Double, val bottom: Double)
 
+    /**
+     * Computes the bounding box of an instance in world coordinates.
+     * The returned BBox uses exclusive-end semantics for right/bottom:
+     * - left/top: inclusive start of the first collision pixel
+     * - right/bottom: exclusive end (one past the last collision pixel)
+     *
+     * Sprite margin values (marginLeft/Right/Top/Bottom) are 0-indexed inclusive
+     * pixel positions within the sprite. At scale > 1, each pixel occupies multiple
+     * world units, so we use (margin + 1) for right/bottom to get the full extent.
+     */
     fun computeBBox(inst: Instance): BBox? {
         val spriteIdx = if (inst.maskIndex >= 0) inst.maskIndex else inst.spriteIndex
         if (spriteIdx !in gameData.sprites.indices) return null
         val s = gameData.sprites[spriteIdx]
         val x1 = inst.x + (s.marginLeft - s.originX) * inst.imageXscale
-        val x2 = inst.x + (s.marginRight - s.originX) * inst.imageXscale
+        val x2 = inst.x + (s.marginRight + 1 - s.originX) * inst.imageXscale
         val y1 = inst.y + (s.marginTop - s.originY) * inst.imageYscale
-        val y2 = inst.y + (s.marginBottom - s.originY) * inst.imageYscale
+        val y2 = inst.y + (s.marginBottom + 1 - s.originY) * inst.imageYscale
         return BBox(minOf(x1, x2), maxOf(x1, x2), minOf(y1, y2), maxOf(y1, y2))
     }
 
