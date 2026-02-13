@@ -112,6 +112,22 @@ class KGMSRuntime(
 
         if (!headless) {
             GLFW.glfwSetKeyCallback(window) { _, key, _, action, _ ->
+                // Debug keys: room navigation
+                if (action == GLFW.GLFW_PRESS) {
+                    when (key) {
+                        GLFW.GLFW_KEY_PAGE_UP -> {
+                            val next = runner.currentRoomIndex + 1
+                            if (next < runner.gameData.rooms.size) runner.gotoRoom(next)
+                            return@glfwSetKeyCallback
+                        }
+                        GLFW.GLFW_KEY_PAGE_DOWN -> {
+                            val prev = runner.currentRoomIndex - 1
+                            if (prev >= 0) runner.gotoRoom(prev)
+                            return@glfwSetKeyCallback
+                        }
+                    }
+                }
+
                 val gmKey = glfwToGMKey[key] ?: run {
                     // Letters A-Z: GLFW uses ASCII codes (65-90), GM uses same
                     if (key in GLFW.GLFW_KEY_A..GLFW.GLFW_KEY_Z) key
