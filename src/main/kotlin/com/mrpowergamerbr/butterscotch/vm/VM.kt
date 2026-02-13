@@ -899,11 +899,15 @@ class VM(
         currentSelf = prevSelf
         currentOther = prevOther
 
-        // Unknown function - stub (only warn once per function)
-        if (name !in unknownFunctions) {
-            unknownFunctions.add(name)
-            println("WARNING: Unknown function '$name' with ${args.size} args")
+        // Unknown function - stub (only warn once per function per object)
+        val objectData = self.getObjectData(this)
+        val unknownFunctionKey = "${objectData.name}:${name}"
+
+        if (unknownFunctionKey !in unknownFunctions) {
+            unknownFunctions.add(unknownFunctionKey)
+            println("WARNING: Unknown function '$name' with ${args.size} args (called by ${objectData.name})")
         }
+
         return GMLValue.ZERO
     }
 }
