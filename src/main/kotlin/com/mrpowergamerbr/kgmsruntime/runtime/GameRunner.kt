@@ -488,14 +488,11 @@ class GameRunner(
             dispatchEvent(EVENT_OTHER, OTHER_GAME_START)
         }
 
-        // Fire Room Start only for persistent instances that survived the room transition
-        // (Newly created room instances should not get Room Start on their initial room load)
+        // Fire Room Start for ALL instances after a room transition
         println("  Room setup complete. Total instances: ${instances.size}")
         for (inst in ArrayList(instances)) {
             if (inst.destroyed) continue
-            if (inst in persistent) {
-                fireEvent(inst, EVENT_OTHER, OTHER_ROOM_START)
-            }
+            fireEvent(inst, EVENT_OTHER, OTHER_ROOM_START)
         }
     }
 
