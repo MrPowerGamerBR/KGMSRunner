@@ -526,6 +526,26 @@ class FormReader(private val filePath: String) {
                 )
             }
 
+            // Parse tiles
+            val tileCount = buf.getInt(tileListPtr)
+            val tiles = (0 until tileCount).map { j ->
+                val tp = buf.getInt(tileListPtr + 4 + j * 4)
+                RoomTileData(
+                    x = buf.getInt(tp),
+                    y = buf.getInt(tp + 4),
+                    bgDefIndex = buf.getInt(tp + 8),
+                    sourceX = buf.getInt(tp + 12),
+                    sourceY = buf.getInt(tp + 16),
+                    width = buf.getInt(tp + 20),
+                    height = buf.getInt(tp + 24),
+                    depth = buf.getInt(tp + 28),
+                    instanceId = buf.getInt(tp + 32),
+                    scaleX = buf.getFloat(tp + 36),
+                    scaleY = buf.getFloat(tp + 40),
+                    color = buf.getInt(tp + 44),
+                )
+            }
+
             // Resolve creation code to CODE index
             val resolvedCreationCodeId = if (creationCodeId >= 0) {
                 codeByOffset[creationCodeId] ?: -1
@@ -558,6 +578,7 @@ class FormReader(private val filePath: String) {
                             rotation = inst.rotation,
                         )
                     },
+                    tiles = tiles,
                 )
             )
         }

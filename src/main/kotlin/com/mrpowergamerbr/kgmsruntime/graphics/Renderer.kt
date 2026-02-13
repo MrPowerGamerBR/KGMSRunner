@@ -306,6 +306,43 @@ void main() {
         flushVertices(GL_TRIANGLES)
     }
 
+    fun drawTile(tpagIndex: Int, x: Int, y: Int, sourceX: Int, sourceY: Int,
+                 width: Int, height: Int, scaleX: Float, scaleY: Float, color: Int) {
+        if (tpagIndex < 0 || tpagIndex >= gameData.texturePageItems.size) return
+        val tpag = gameData.texturePageItems[tpagIndex]
+
+        val texId = ensureTexture(tpag.texturePageId)
+        if (texId < 0) return
+
+        val texW = textureWidths[tpag.texturePageId].toFloat()
+        val texH = textureHeights[tpag.texturePageId].toFloat()
+        if (texW == 0f || texH == 0f) return
+
+        // The tile's sourceX/Y is an offset within the background image.
+        // The background image starts at tpag.sourceX/Y in the texture page.
+        val u0 = (tpag.sourceX + sourceX) / texW
+        val v0 = (tpag.sourceY + sourceY) / texH
+        val u1 = (tpag.sourceX + sourceX + width) / texW
+        val v1 = (tpag.sourceY + sourceY + height) / texH
+
+        // Extract color components (ARGB)
+        val a = ((color ushr 24) and 0xFF) / 255f
+        val r = ((color ushr 16) and 0xFF) / 255f
+        val g = ((color ushr 8) and 0xFF) / 255f
+        val b = (color and 0xFF) / 255f
+
+        glBindTexture(GL_TEXTURE_2D, texId)
+        glUniform1i(uHasTexture, 1)
+
+        vertexCount = 0
+        val dx = x.toDouble()
+        val dy = y.toDouble()
+        val dw = (width * scaleX).toDouble()
+        val dh = (height * scaleY).toDouble()
+        putQuad(dx, dy, dx + dw, dy + dh, u0, v0, u1, v1, r, g, b, a)
+        flushVertices(GL_TRIANGLES)
+    }
+
     fun drawRectangle(x1: Double, y1: Double, x2: Double, y2: Double, outline: Boolean) {
         glBindTexture(GL_TEXTURE_2D, 0)
         glUniform1i(uHasTexture, 0)

@@ -186,11 +186,8 @@ class GameRunner(
                 // Draw room backgrounds (non-foreground)
                 drawRoomBackgrounds(room, false)
 
-                // Draw all instances sorted by depth (descending)
-                val sorted = instances.filter { !it.destroyed }.sortedByDescending { it.depth }
-                for (inst in sorted) {
-                    drawInstance(inst)
-                }
+                // Draw instances and tiles interleaved by depth
+                drawInstancesAndTiles(room)
 
                 // Draw foreground backgrounds
                 drawRoomBackgrounds(room, true)
@@ -206,10 +203,7 @@ class GameRunner(
 
             drawRoomBackgrounds(room, false)
 
-            val sorted = instances.filter { !it.destroyed }.sortedByDescending { it.depth }
-            for (inst in sorted) {
-                drawInstance(inst)
-            }
+            drawInstancesAndTiles(room)
 
             drawRoomBackgrounds(room, true)
         }
@@ -223,6 +217,50 @@ class GameRunner(
             if (bgDef.tpagIndex < 0) continue
             renderer.drawBackground(bgDef.tpagIndex, bg.x, bg.y, bg.tileX, bg.tileY)
         }
+    }
+
+    private fun drawInstancesAndTiles(room: RoomData) {
+        // Group tiles by depth
+        val tilesByDepth = room.tiles.groupBy { it.depth }
+
+        // Collect all unique depths from instances and tiles
+        val allDepths = mutableSetOf<Int>()
+        for (inst in instances) {
+            if (!inst.destroyed) allDepths.add(inst.depth)
+        }
+        allDepths.addAll(tilesByDepth.keys)
+
+        // Sort descending (higher depth = drawn first = behind)
+        val sortedDepths = allDepths.sortedDescending()
+
+        for (depth in sortedDepths) {
+            // Draw tiles at this depth
+            val tiles = tilesByDepth[depth]
+            if (tiles != null) {
+                for (tile in tiles) {
+                    drawTile(tile)
+                }
+            }
+            // Draw instances at this depth
+            for (inst in instances) {
+                if (!inst.destroyed && inst.depth == depth) {
+                    drawInstance(inst)
+                }
+            }
+        }
+    }
+
+    private fun drawTile(tile: com.mrpowergamerbr.kgmsruntime.data.RoomTileData) {
+        if (tile.bgDefIndex < 0 || tile.bgDefIndex >= gameData.backgrounds.size) return
+        val bgDef = gameData.backgrounds[tile.bgDefIndex]
+        if (bgDef.tpagIndex < 0) return
+        renderer.drawTile(
+            bgDef.tpagIndex, tile.x, tile.y,
+            tile.sourceX, tile.sourceY,
+            tile.width, tile.height,
+            tile.scaleX, tile.scaleY,
+            tile.color
+        )
     }
 
     private fun drawInstance(inst: Instance) {

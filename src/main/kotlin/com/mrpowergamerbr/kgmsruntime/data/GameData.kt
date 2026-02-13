@@ -110,6 +110,21 @@ class RoomInstanceData(
     val rotation: Float,
 )
 
+class RoomTileData(
+    val x: Int,
+    val y: Int,
+    val bgDefIndex: Int,
+    val sourceX: Int,
+    val sourceY: Int,
+    val width: Int,
+    val height: Int,
+    val depth: Int,
+    val instanceId: Int,
+    val scaleX: Float,
+    val scaleY: Float,
+    val color: Int,
+)
+
 class RoomData(
     val name: String,
     val caption: String,
@@ -124,6 +139,7 @@ class RoomData(
     val backgrounds: List<RoomBackgroundData>,
     val views: List<RoomViewData>,
     val instances: List<RoomInstanceData>,
+    val tiles: List<RoomTileData>,
 )
 
 class CodeEntryData(
