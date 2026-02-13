@@ -242,7 +242,8 @@ class VM(
                                     val arrayIdx = if (isArray) (if (stack.isNotEmpty()) stack.removeLast() else GMLValue.ZERO).toInt() else -1
                                     val arrayInstTarget = if (isArray) (if (stack.isNotEmpty()) stack.removeLast() else GMLValue.ZERO).toInt() else 0
                                     val effectiveInstType = if (isArray) arrayInstTarget else {
-                                        val raw = instr.extra; if (raw < 0) raw else v.instanceType
+                                        val raw = instr.extra
+                                        if (raw != 0) raw else v.instanceType
                                     }
                                     when {
                                         effectiveInstType == InstanceTypes.LOCAL -> {
@@ -376,8 +377,8 @@ class VM(
                             val rawInstType = instr.extra
                             val effectiveInstType = if (isArray) {
                                 arrayInstTarget // instance target from stack (e.g., -1 for SELF)
-                            } else if (rawInstType < 0) {
-                                rawInstType
+                            } else if (rawInstType != 0) {
+                                rawInstType // negative = special type (SELF/OTHER/GLOBAL/etc), positive = object ID
                             } else {
                                 v.instanceType
                             }
