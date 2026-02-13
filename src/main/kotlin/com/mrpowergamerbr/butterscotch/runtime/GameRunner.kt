@@ -705,12 +705,12 @@ class GameRunner(
                 when (inst.pathEndAction) {
                     0 -> { // path_action_stop
                         inst.pathPosition = 1.0
+                        inst.pathSpeed = 0.0
                         val pos = interpolatePathPosition(inst.pathIndex, 1.0)
                         if (pos != null) {
                             inst.x = pos.first + inst.pathXOffset
                             inst.y = pos.second + inst.pathYOffset
                         }
-                        pathEnd(inst)
                         continue
                     }
                     1 -> { // path_action_restart
@@ -735,12 +735,12 @@ class GameRunner(
                 when (inst.pathEndAction) {
                     0 -> { // path_action_stop
                         inst.pathPosition = 0.0
+                        inst.pathSpeed = 0.0
                         val pos = interpolatePathPosition(inst.pathIndex, 0.0)
                         if (pos != null) {
                             inst.x = pos.first + inst.pathXOffset
                             inst.y = pos.second + inst.pathYOffset
                         }
-                        pathEnd(inst)
                         continue
                     }
                     1 -> { // path_action_restart
