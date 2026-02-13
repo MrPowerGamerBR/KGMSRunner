@@ -719,17 +719,6 @@ class VM(
         }
     }
 
-    private fun setGlobalBuiltin(name: String, value: GMLValue) {
-        val r = runner!!
-        traceGlobalWrite(name, value, null)
-        when (name) {
-            "room_speed" -> {} // Read-only at runtime for now
-            "keyboard_lastkey" -> r.keyboardLastKey = value.toInt()
-            "room_persistent" -> r.roomPersistentFlags[r.currentRoomIndex] = value.toBool()
-            else -> r.globalVariables[name] = value
-        }
-    }
-
     private fun traceGlobalWrite(name: String, value: GMLValue, codeName: String?) {
         if (Butterscotch.traceGlobals.isEmpty())
             return
