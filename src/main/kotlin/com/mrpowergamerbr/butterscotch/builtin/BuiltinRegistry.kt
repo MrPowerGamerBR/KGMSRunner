@@ -45,7 +45,7 @@ fun registerBuiltins(vm: VM) {
         val px = args[0].toReal()
         val py = args[1].toReal()
         val self = v.currentSelf
-        val runner = v.runner!!
+        val runner = v.runner
         val bb = if (self != null) runner.computeBBox(self) else null
         if (bb != null) {
             val nearestX = px.coerceIn(bb.left, bb.right)
@@ -94,8 +94,8 @@ fun registerBuiltins(vm: VM) {
         while (true) { idx = s.indexOf(sub, idx); if (idx < 0) break; count++; idx += sub.length }
         GMLValue.of(count.toDouble())
     }
-    f["string_width"] = { _, args -> GMLValue.of(vm.runner!!.renderer.measureStringWidth(args[0].toStr())) }
-    f["string_height"] = { _, args -> GMLValue.of(vm.runner!!.renderer.measureStringHeight(args[0].toStr())) }
+    f["string_width"] = { _, args -> GMLValue.of(vm.runner.renderer.measureStringWidth(args[0].toStr())) }
+    f["string_height"] = { _, args -> GMLValue.of(vm.runner.renderer.measureStringHeight(args[0].toStr())) }
     f["string_hash_to_newline"] = { _, args -> GMLValue.of(args[0].toStr().replace("#", "\n")) }
     f["chr"] = { _, args -> GMLValue.of(args[0].toInt().toChar().toString()) }
     f["ord"] = { _, args -> val s = args[0].toStr(); GMLValue.of(if (s.isNotEmpty()) s[0].code.toDouble() else 0.0) }
@@ -103,48 +103,48 @@ fun registerBuiltins(vm: VM) {
 
     // ========== Drawing ==========
     f["draw_sprite"] = { _, args ->
-        vm.runner!!.renderer.drawSprite(args[0].toInt(), args[1].toInt(), args[2].toReal(), args[3].toReal())
+        vm.runner.renderer.drawSprite(args[0].toInt(), args[1].toInt(), args[2].toReal(), args[3].toReal())
         GMLValue.ZERO
     }
     f["draw_sprite_ext"] = { _, args ->
-        vm.runner!!.renderer.drawSprite(args[0].toInt(), args[1].toInt(), args[2].toReal(), args[3].toReal(),
+        vm.runner.renderer.drawSprite(args[0].toInt(), args[1].toInt(), args[2].toReal(), args[3].toReal(),
             args[4].toReal(), args[5].toReal(), args[6].toReal(), args[7].toInt(), args[8].toReal())
         GMLValue.ZERO
     }
     f["draw_sprite_part"] = { _, args ->
-        vm.runner!!.renderer.drawSpritePart(
+        vm.runner.renderer.drawSpritePart(
             args[0].toInt(), args[1].toInt(),
             args[2].toInt(), args[3].toInt(), args[4].toInt(), args[5].toInt(),
             args[6].toReal(), args[7].toReal()
         )
         GMLValue.ZERO
     }
-    f["draw_set_color"] = { _, args -> vm.runner!!.renderer.drawColor = args[0].toInt(); GMLValue.ZERO }
-    f["draw_set_alpha"] = { _, args -> vm.runner!!.renderer.drawAlpha = args[0].toReal(); GMLValue.ZERO }
-    f["draw_get_color"] = { _, _ -> GMLValue.of(vm.runner!!.renderer.drawColor.toDouble()) }
-    f["draw_get_alpha"] = { _, _ -> GMLValue.of(vm.runner!!.renderer.drawAlpha) }
-    f["draw_set_font"] = { _, args -> vm.runner!!.renderer.drawFont = args[0].toInt(); GMLValue.ZERO }
-    f["draw_set_halign"] = { _, args -> vm.runner!!.renderer.drawHalign = args[0].toInt(); GMLValue.ZERO }
-    f["draw_set_valign"] = { _, args -> vm.runner!!.renderer.drawValign = args[0].toInt(); GMLValue.ZERO }
+    f["draw_set_color"] = { _, args -> vm.runner.renderer.drawColor = args[0].toInt(); GMLValue.ZERO }
+    f["draw_set_alpha"] = { _, args -> vm.runner.renderer.drawAlpha = args[0].toReal(); GMLValue.ZERO }
+    f["draw_get_color"] = { _, _ -> GMLValue.of(vm.runner.renderer.drawColor.toDouble()) }
+    f["draw_get_alpha"] = { _, _ -> GMLValue.of(vm.runner.renderer.drawAlpha) }
+    f["draw_set_font"] = { _, args -> vm.runner.renderer.drawFont = args[0].toInt(); GMLValue.ZERO }
+    f["draw_set_halign"] = { _, args -> vm.runner.renderer.drawHalign = args[0].toInt(); GMLValue.ZERO }
+    f["draw_set_valign"] = { _, args -> vm.runner.renderer.drawValign = args[0].toInt(); GMLValue.ZERO }
     f["draw_text"] = { _, args ->
-        vm.runner!!.renderer.drawText(args[0].toReal(), args[1].toReal(), args[2].toStr())
+        vm.runner.renderer.drawText(args[0].toReal(), args[1].toReal(), args[2].toStr())
         GMLValue.ZERO
     }
     f["draw_text_ext"] = { _, args ->
         // draw_text_ext(x, y, string, sep, w)
-        vm.runner!!.renderer.drawText(args[0].toReal(), args[1].toReal(), args[2].toStr())
+        vm.runner.renderer.drawText(args[0].toReal(), args[1].toReal(), args[2].toStr())
         GMLValue.ZERO
     }
     f["draw_text_transformed"] = { _, args ->
         // draw_text_transformed(x, y, string, xscale, yscale, angle)
-        vm.runner!!.renderer.drawTextTransformed(
+        vm.runner.renderer.drawTextTransformed(
             args[0].toReal(), args[1].toReal(), args[2].toStr(),
             args[3].toReal(), args[4].toReal(), args[5].toReal()
         )
         GMLValue.ZERO
     }
     f["draw_rectangle"] = { _, args ->
-        vm.runner!!.renderer.drawRectangle(args[0].toReal(), args[1].toReal(), args[2].toReal(), args[3].toReal(), args[4].toBool())
+        vm.runner.renderer.drawRectangle(args[0].toReal(), args[1].toReal(), args[2].toReal(), args[3].toReal(), args[4].toBool())
         GMLValue.ZERO
     }
     f["draw_set_blend_mode"] = { _, _ -> GMLValue.ZERO }
@@ -169,7 +169,7 @@ fun registerBuiltins(vm: VM) {
         val bgIdx = args[0].toInt()
         if (bgIdx in vm.gameData.backgrounds.indices) {
             val bg = vm.gameData.backgrounds[bgIdx]
-            vm.runner!!.renderer.drawBackground(bg.tpagIndex, args[1].toInt(), args[2].toInt(), false, false)
+            vm.runner.renderer.drawBackground(bg.tpagIndex, args[1].toInt(), args[2].toInt(), false, false)
         }
         GMLValue.ZERO
     }
@@ -178,16 +178,16 @@ fun registerBuiltins(vm: VM) {
     // ========== Instance ==========
     f["instance_create"] = { v, args ->
         val objIdx = args[2].toInt()
-        val inst = vm.runner!!.createInstance(objIdx, args[0].toReal(), args[1].toReal())
+        val inst = vm.runner.createInstance(objIdx, args[0].toReal(), args[1].toReal())
         inst.variables["creator"] = GMLValue.of(v.currentSelf?.id?.toDouble() ?: -4.0)
-        vm.runner!!.fireEvent(inst, GameRunner.EVENT_CREATE, 0)
+        vm.runner.fireEvent(inst, GameRunner.EVENT_CREATE, 0)
         GMLValue.of(inst.id.toDouble())
     }
     f["instance_destroy"] = { v, _ ->
         // Undertale does not use instance_destroy(other) nor does it use instance_destroy(object)
         val self = v.currentSelf
         if (self != null) {
-            v.runner!!.destroyInstance(self)
+            v.runner.destroyInstance(self)
         }
         GMLValue.ZERO
     }
@@ -197,11 +197,11 @@ fun registerBuiltins(vm: VM) {
             val newObjIdx = args[0].toInt()
             val perf = args[1].toReal() > 0.5
             if (perf) {
-                vm.runner!!.fireEvent(self, GameRunner.EVENT_DESTROY, 0)
+                vm.runner.fireEvent(self, GameRunner.EVENT_DESTROY, 0)
             }
             self.objectIndex = newObjIdx
-            if (newObjIdx in vm.runner!!.gameData.objects.indices) {
-                val objDef = vm.runner!!.gameData.objects[newObjIdx]
+            if (newObjIdx in vm.runner.gameData.objects.indices) {
+                val objDef = vm.runner.gameData.objects[newObjIdx]
                 self.spriteIndex = objDef.spriteIndex
                 self.visible = objDef.visible
                 self.solid = objDef.solid
@@ -210,23 +210,23 @@ fun registerBuiltins(vm: VM) {
                 self.maskIndex = objDef.maskId
             }
             if (perf) {
-                vm.runner!!.fireEvent(self, GameRunner.EVENT_CREATE, 0)
+                vm.runner.fireEvent(self, GameRunner.EVENT_CREATE, 0)
             }
         }
         GMLValue.ZERO
     }
     f["instance_exists"] = { _, args ->
         val targetId = args[0].toInt()
-        val found = vm.runner!!.findInstancesByObjectOrId(targetId)
+        val found = vm.runner.findInstancesByObjectOrId(targetId)
         GMLValue.of(found.isNotEmpty())
     }
     f["instance_number"] = { _, args ->
         val objIdx = args[0].toInt()
-        GMLValue.of(vm.runner!!.instances.count { it.objectIndex == objIdx && !it.destroyed }.toDouble())
+        GMLValue.of(vm.runner.instances.count { it.objectIndex == objIdx && !it.destroyed }.toDouble())
     }
     f["instance_find"] = { _, args ->
         val objIdx = args[0].toInt(); val n = args[1].toInt()
-        val matches = vm.runner!!.instances.filter { it.objectIndex == objIdx && !it.destroyed }
+        val matches = vm.runner.instances.filter { it.objectIndex == objIdx && !it.destroyed }
         GMLValue.of(if (n in matches.indices) matches[n].id.toDouble() else -4.0)
     }
 
@@ -234,7 +234,7 @@ fun registerBuiltins(vm: VM) {
     f["action_kill_object"] = { v, _ ->
         val self = v.currentSelf
         if (self != null) {
-            v.runner!!.destroyInstance(self)
+            v.runner.destroyInstance(self)
         }
         GMLValue.ZERO
     }
@@ -309,7 +309,7 @@ fun registerBuiltins(vm: VM) {
             val speed = args[1].toReal()
             val endAction = args[2].toInt()
             val absolute = args[3].toBool()
-            val runner = vm.runner!!
+            val runner = vm.runner
 
             self.pathIndex = pathIdx
             self.pathSpeed = speed
@@ -335,15 +335,15 @@ fun registerBuiltins(vm: VM) {
     f["path_end"] = { v, _ ->
         val self = v.currentSelf
         if (self != null) {
-            vm.runner!!.pathEnd(self)
+            vm.runner.pathEnd(self)
         }
         GMLValue.ZERO
     }
 
     // ========== Room ==========
-    f["room_goto"] = { _, args -> vm.runner!!.gotoRoom(args[0].toInt()); GMLValue.ZERO }
-    f["room_goto_next"] = { _, _ -> vm.runner!!.gotoRoom(vm.runner!!.currentRoomIndex + 1); GMLValue.ZERO }
-    f["room_goto_previous"] = { _, _ -> vm.runner!!.gotoRoom(vm.runner!!.currentRoomIndex - 1); GMLValue.ZERO }
+    f["room_goto"] = { _, args -> vm.runner.gotoRoom(args[0].toInt()); GMLValue.ZERO }
+    f["room_goto_next"] = { _, _ -> vm.runner.gotoRoom(vm.runner.currentRoomIndex + 1); GMLValue.ZERO }
+    f["room_goto_previous"] = { _, _ -> vm.runner.gotoRoom(vm.runner.currentRoomIndex - 1); GMLValue.ZERO }
     f["room_exists"] = { _, args -> GMLValue.of(args[0].toInt() in vm.gameData.rooms.indices) }
     f["room_next"] = { _, args ->
         val ind = args[0].toInt()
@@ -361,10 +361,10 @@ fun registerBuiltins(vm: VM) {
     }
 
     // ========== Keyboard ==========
-    f["keyboard_check"] = { _, args -> GMLValue.of(args[0].toInt() in vm.runner!!.keysHeld) }
-    f["keyboard_check_pressed"] = { _, args -> GMLValue.of(args[0].toInt() in vm.runner!!.keysPressed) }
-    f["keyboard_check_released"] = { _, args -> GMLValue.of(args[0].toInt() in vm.runner!!.keysReleased) }
-    f["keyboard_clear"] = { _, args -> vm.runner!!.keysHeld.remove(args[0].toInt()); GMLValue.ZERO }
+    f["keyboard_check"] = { _, args -> GMLValue.of(args[0].toInt() in vm.runner.keysHeld) }
+    f["keyboard_check_pressed"] = { _, args -> GMLValue.of(args[0].toInt() in vm.runner.keysPressed) }
+    f["keyboard_check_released"] = { _, args -> GMLValue.of(args[0].toInt() in vm.runner.keysReleased) }
+    f["keyboard_clear"] = { _, args -> vm.runner.keysHeld.remove(args[0].toInt()); GMLValue.ZERO }
 
     // ========== Data structures ==========
     val dsMaps = mutableMapOf<Int, MutableMap<String, GMLValue>>()
@@ -519,7 +519,7 @@ fun registerBuiltins(vm: VM) {
     }
     f["game_end"] = { _, _ ->
         println("!!! game_end() called! Enabling call logging.")
-        vm.runner!!.shouldQuit = true; GMLValue.ZERO
+        vm.runner.shouldQuit = true; GMLValue.ZERO
     }
     f["game_restart"] = { _, _ -> GMLValue.ZERO }
     f["randomize"] = { _, _ -> GMLValue.ZERO }
@@ -534,14 +534,14 @@ fun registerBuiltins(vm: VM) {
     f["gamepad_is_connected"] = { _, _ -> GMLValue.FALSE }
     f["keyboard_key_press"] = { _, _ -> GMLValue.ZERO }
     f["keyboard_key_release"] = { _, _ -> GMLValue.ZERO }
-    f["keyboard_check_direct"] = { _, args -> GMLValue.of(args[0].toInt() in vm.runner!!.keysHeld) }
+    f["keyboard_check_direct"] = { _, args -> GMLValue.of(args[0].toInt() in vm.runner.keysHeld) }
 
     f["script_execute"] = { v, args ->
         if (args.isNotEmpty()) {
             val scriptId = args[0].toInt()
             val scriptArgs = if (args.size > 1) args.subList(1, args.size) else emptyList()
             val script = vm.gameData.scripts.getOrNull(scriptId)
-            val self = v.currentSelf ?: vm.runner!!.instances.firstOrNull()
+            val self = v.currentSelf ?: vm.runner.instances.firstOrNull()
             if (script != null && self != null) {
                 v.callFunction(script.name, scriptArgs, self, self, mutableMapOf())
             } else GMLValue.ZERO
@@ -551,7 +551,7 @@ fun registerBuiltins(vm: VM) {
     f["event_inherited"] = { v, _ ->
         val self = v.currentSelf
         if (self != null) {
-            vm.runner!!.fireEventInherited(self)
+            vm.runner.fireEventInherited(self)
         }
         GMLValue.ZERO
     }
@@ -559,7 +559,7 @@ fun registerBuiltins(vm: VM) {
         val self = v.currentSelf
         if (self != null) {
             val userEventNum = args[0].toInt()
-            vm.runner!!.fireEvent(self, GameRunner.EVENT_OTHER, 10 + userEventNum)
+            vm.runner.fireEvent(self, GameRunner.EVENT_OTHER, 10 + userEventNum)
         }
         GMLValue.ZERO
     }
@@ -568,19 +568,19 @@ fun registerBuiltins(vm: VM) {
         if (self != null) {
             val eventType = args[0].toInt()
             val eventNumb = args[1].toInt()
-            vm.runner!!.fireEvent(self, eventType, eventNumb)
+            vm.runner.fireEvent(self, eventType, eventNumb)
         }
         GMLValue.ZERO
     }
 
     f["variable_global_exists"] = { _, args ->
-        GMLValue.of(args[0].toStr() in vm.runner!!.globalVariables)
+        GMLValue.of(args[0].toStr() in vm.runner.globalVariables)
     }
     f["variable_global_get"] = { _, args ->
-        vm.runner!!.globalVariables[args[0].toStr()] ?: GMLValue.ZERO
+        vm.runner.globalVariables[args[0].toStr()] ?: GMLValue.ZERO
     }
     f["variable_global_set"] = { _, args ->
-        vm.runner!!.globalVariables[args[0].toStr()] = args[1]; GMLValue.ZERO
+        vm.runner.globalVariables[args[0].toStr()] = args[1]; GMLValue.ZERO
     }
 
     f["object_get_name"] = { _, args ->
@@ -646,7 +646,7 @@ fun registerBuiltins(vm: VM) {
         // args[3] = prec (ignored, bbox-only)
         val notme = args[4].toBool()
         val self = v.currentSelf
-        val runner = vm.runner!!
+        val runner = vm.runner
         var result = -4.0 // noone
         for (inst in runner.findInstancesByObjectOrId(obj)) {
             if (notme && inst === self) continue
@@ -666,7 +666,7 @@ fun registerBuiltins(vm: VM) {
         // args[5] = prec (ignored, bbox-only)
         val notme = args[6].toBool()
         val self = v.currentSelf
-        val runner = vm.runner!!
+        val runner = vm.runner
         val ql = minOf(qx1, qx2); val qr = maxOf(qx1, qx2)
         val qt = minOf(qy1, qy2); val qb = maxOf(qy1, qy2)
         var result = -4.0 // noone
@@ -689,7 +689,7 @@ fun registerBuiltins(vm: VM) {
         // args[4] = prec (ignored, bbox-only)
         val notme = args[5].toBool()
         val self = v.currentSelf
-        val runner = vm.runner!!
+        val runner = vm.runner
         val radSq = rad * rad
         var result = -4.0 // noone
         for (inst in runner.findInstancesByObjectOrId(obj)) {
@@ -714,7 +714,7 @@ fun registerBuiltins(vm: VM) {
         // args[5] = prec (ignored, bbox-only)
         val notme = args[6].toBool()
         val self = v.currentSelf
-        val runner = vm.runner!!
+        val runner = vm.runner
         val dx = lx2 - lx1; val dy = ly2 - ly1
         var result = -4.0 // noone
         for (inst in runner.findInstancesByObjectOrId(obj)) {

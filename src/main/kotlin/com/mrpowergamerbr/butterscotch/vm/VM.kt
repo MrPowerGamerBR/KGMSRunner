@@ -10,10 +10,9 @@ class DecodedCode(
     val offsetToIndex: Map<Int, Int>,
 )
 
-class VM(
-    val gameData: GameData,
-    var runner: GameRunner? = null,
-) {
+class VM(val gameData: GameData) {
+    lateinit var runner: GameRunner
+
     // Pre-decoded instructions per code entry
     val decodedEntries = arrayOfNulls<DecodedCode>(gameData.codeEntries.size)
 
