@@ -31,6 +31,15 @@ When `--debug` is enabled, the following features are enabled:
 
 * `Page Up` and `Page Down`: Moves to the next room and to the previous room, respectively.
 * `P` pauses the game, and `O` steps the game forward by one frame.
+* `'` opens the debug console
+
+#### Debug Console
+
+Sometimes you need to debug something, like, for example, you want to jump to a specific room, but you don't want to jump it directly from the CLI because that skips the initial setup that the first room does, which breaks things.
+
+You can see all of the debug console commands with `help`.
+
+<img width="896" height="719" alt="20260213_165254_Butterscotch - UNDERTALE" src="https://github.com/user-attachments/assets/d51e18f6-7527-4570-a6b2-e3295f6da699" />
 
 ## Undertale running via Butterscotch
 
