@@ -13,6 +13,8 @@ class KGMSRuntimeCommand : CliktCommand(name = "kgmsruntime") {
     private val room by option("--room", help = "Start at a specific room (name or index)")
     private val listRooms by option("--list-rooms", help = "List all rooms and exit").flag()
     private val debugObj by option("--debug-obj", help = "Debug object name").multiple()
+    private val traceCalls by option("--trace-calls", help = "Print all function calls of a specific object, can be set to \"*\" to log all objects").multiple()
+    private val ignoreFunctionTracedCalls by option("--ignore-function-traced-calls", help = "Ignore specific function when tracing calls, useful to trim down logs").multiple()
 
     override fun run() {
         if (listRooms) {
@@ -27,7 +29,9 @@ class KGMSRuntimeCommand : CliktCommand(name = "kgmsruntime") {
             screenshotPattern = screenshot,
             screenshotAtFrames = screenshotAtFrame.toSet(),
             startRoom = room,
-            debugObj = debugObj.toSet()
+            debugObj = debugObj.toSet(),
+            traceCalls = traceCalls.toSet(),
+            ignoreFunctionTracedCalls = ignoreFunctionTracedCalls.toSet()
         ).run()
     }
 }

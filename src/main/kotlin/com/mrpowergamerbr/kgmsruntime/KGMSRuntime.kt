@@ -1,10 +1,5 @@
 package com.mrpowergamerbr.kgmsruntime
 
-import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.parameters.options.flag
-import com.github.ajalt.clikt.parameters.options.multiple
-import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.types.int
 import com.mrpowergamerbr.kgmsruntime.builtin.registerBuiltins
 import com.mrpowergamerbr.kgmsruntime.data.FormReader
 import com.mrpowergamerbr.kgmsruntime.data.GameData
@@ -24,11 +19,15 @@ class KGMSRuntime(
     private val screenshotPattern: String? = null,
     private val screenshotAtFrames: Set<Int> = emptySet(),
     private val startRoom: String? = null,
-    private val debugObj: Set<String>
+    private val debugObj: Set<String>,
+    private val traceCalls: Set<String>,
+    private val ignoreFunctionTracedCalls: Set<String>
 ) {
     companion object {
         // yay static abuse
         lateinit var debugObj: Set<String>
+        lateinit var traceCalls: Set<String>
+        lateinit var ignoreFunctionTracedCalls: Set<String>
     }
 
     private var window: Long = 0
@@ -68,6 +67,8 @@ class KGMSRuntime(
 
     fun run() {
         KGMSRuntime.debugObj = debugObj
+        KGMSRuntime.traceCalls = traceCalls
+        KGMSRuntime.ignoreFunctionTracedCalls = this@KGMSRuntime.ignoreFunctionTracedCalls
 
         println("KGMSRuntime - GameMaker: Studio Bytecode 16 Runner")
         println("Loading game data...")

@@ -1,5 +1,6 @@
 package com.mrpowergamerbr.kgmsruntime.vm
 
+import com.mrpowergamerbr.kgmsruntime.KGMSRuntime
 import com.mrpowergamerbr.kgmsruntime.data.GameData
 import com.mrpowergamerbr.kgmsruntime.runtime.GameRunner
 import com.mrpowergamerbr.kgmsruntime.runtime.Instance
@@ -808,7 +809,6 @@ class VM(
         arr.data.getOrPut(0) { mutableMapOf() }[index] = value
     }
 
-    var logCalls = false
     var traceCodeEntry = ""
     private val unknownFunctions = mutableSetOf<String>()
 
@@ -817,7 +817,12 @@ class VM(
     var currentOther: Instance? = null
 
     fun callFunction(name: String, args: List<GMLValue>, self: Instance, other: Instance, locals: MutableMap<Int, GMLValue>): GMLValue {
-        if (logCalls) println("  CALL: $name(${args.joinToString { it.toStr().take(30) }})")
+        if (KGMSRuntime.traceCalls.isNotEmpty() && name !in KGMSRuntime.ignoreFunctionTracedCalls) {
+            val objectData = self.getObjectData(this)
+            if (KGMSRuntime.traceCalls.contains("*") || objectData.name in KGMSRuntime.traceCalls) {
+                println("  CALL (${objectData.name}): $name(${args.joinToString { it.toStr().take(30) }})")
+            }
+        }
 
         // Set execution context so builtins can access self/other
         val prevSelf = currentSelf
