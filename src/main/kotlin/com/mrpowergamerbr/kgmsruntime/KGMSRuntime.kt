@@ -255,11 +255,13 @@ class KGMSRuntime(
 
         while (frameCount < maxFrame && !runner.shouldQuit) {
             runner.step()
-            runner.clearPerFrameInput()
             frameCount++
 
             GL11.glClear(GL11.GL_COLOR_BUFFER_BIT)
             runner.draw()
+
+            // Clear per-frame input AFTER both step and draw
+            runner.clearPerFrameInput()
 
             if (frameCount in screenshotAtFrames) {
                 val filename = pattern.replace("%s", frameCount.toString())
