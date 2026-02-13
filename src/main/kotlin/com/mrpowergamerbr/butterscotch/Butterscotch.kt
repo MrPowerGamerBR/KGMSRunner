@@ -251,12 +251,12 @@ class Butterscotch(
             }
 
             // Character callback for console text input
-            val console = this.console
-            if (console != null) {
-                GLFW.glfwSetCharCallback(window) { _, codepoint ->
-                    if (console.isOpen && !console.toggledConsoleOnThisFrame) {
-                        console.onChar(codepoint)
-                    }
+            GLFW.glfwSetCharCallback(window) { _, codepoint ->
+                // This console reference must be INSIDE of the callback, because the initWindow is called BEFORE the console is set up
+                val console = this.console ?: return@glfwSetCharCallback
+
+                if (console.isOpen && !console.toggledConsoleOnThisFrame) {
+                    console.onChar(codepoint)
                 }
             }
 
