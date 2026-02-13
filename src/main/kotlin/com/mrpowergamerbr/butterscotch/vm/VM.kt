@@ -903,7 +903,7 @@ class VM(
         val objectData = self.getObjectData(this)
         val unknownFunctionKey = "${objectData.name}:${name}"
 
-        if (unknownFunctionKey !in unknownFunctions) {
+        if (Butterscotch.alwaysLogUnknownInstructions || unknownFunctionKey !in unknownFunctions) {
             unknownFunctions.add(unknownFunctionKey)
             println("WARNING: Unknown function '$name' with ${args.size} args (called by ${objectData.name})")
         }
