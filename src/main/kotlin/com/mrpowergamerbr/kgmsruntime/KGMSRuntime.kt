@@ -211,25 +211,36 @@ class KGMSRuntime(
         var frameCount = 0
 
         while (!GLFW.glfwWindowShouldClose(window) && !runner.shouldQuit) {
-            frameCount++
-            if (frameCount <= 3) println("  Frame $frameCount: room=${runner.currentRoom?.name}, instances=${runner.instances.size}")
             val currentTime = GLFW.glfwGetTime()
             val deltaTime = currentTime - lastTime
             lastTime = currentTime
             accumulator += deltaTime
 
-            // Fixed timestep
-            while (accumulator >= targetFrameTime) {
-                runner.step()
-                accumulator -= targetFrameTime
+            // Cap to prevent spiral of death after lag
+            if (accumulator > targetFrameTime * 3) {
+                accumulator = targetFrameTime
             }
 
-            // Draw
-            GL11.glClear(GL11.GL_COLOR_BUFFER_BIT)
-            runner.draw()
+            if (accumulator >= targetFrameTime) {
+                accumulator -= targetFrameTime
+                frameCount++
+                if (frameCount <= 3) println("  Frame $frameCount: room=${runner.currentRoom?.name}, instances=${runner.instances.size}")
 
-            GLFW.glfwSwapBuffers(window)
-            GLFW.glfwPollEvents()
+                runner.step()
+
+                GL11.glClear(GL11.GL_COLOR_BUFFER_BIT)
+                runner.draw()
+
+                // Clear per-frame input AFTER both step and draw
+                runner.clearPerFrameInput()
+
+                GLFW.glfwSwapBuffers(window)
+                GLFW.glfwPollEvents()
+            } else {
+                // Wait efficiently for next frame or input event
+                val waitTime = targetFrameTime - accumulator
+                GLFW.glfwWaitEventsTimeout(waitTime)
+            }
         }
         println("Game loop ended: windowShouldClose=${GLFW.glfwWindowShouldClose(window)}, shouldQuit=${runner.shouldQuit}, frames=$frameCount")
     }

@@ -158,8 +158,9 @@ class GameRunner(
 
         // Remove destroyed instances
         instances.removeAll { it.destroyed }
+    }
 
-        // Clear per-frame input
+    fun clearPerFrameInput() {
         keysPressed.clear()
         keysReleased.clear()
     }
