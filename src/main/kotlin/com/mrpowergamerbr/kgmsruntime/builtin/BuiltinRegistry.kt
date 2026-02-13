@@ -311,6 +311,20 @@ fun registerBuiltins(vm: VM) {
     f["room_goto_next"] = { _, _ -> vm.runner!!.gotoRoom(vm.runner!!.currentRoomIndex + 1); GMLValue.ZERO }
     f["room_goto_previous"] = { _, _ -> vm.runner!!.gotoRoom(vm.runner!!.currentRoomIndex - 1); GMLValue.ZERO }
     f["room_exists"] = { _, args -> GMLValue.of(args[0].toInt() in vm.gameData.rooms.indices) }
+    f["room_next"] = { _, args ->
+        val ind = args[0].toInt()
+        val order = vm.gameData.gen8.roomOrder
+        val pos = order.indexOf(ind)
+        if (pos >= 0 && pos + 1 < order.size) GMLValue.of(order[pos + 1].toDouble())
+        else GMLValue.of(-1.0)
+    }
+    f["room_previous"] = { _, args ->
+        val ind = args[0].toInt()
+        val order = vm.gameData.gen8.roomOrder
+        val pos = order.indexOf(ind)
+        if (pos > 0) GMLValue.of(order[pos - 1].toDouble())
+        else GMLValue.of(-1.0)
+    }
 
     // ========== Keyboard ==========
     f["keyboard_check"] = { _, args -> GMLValue.of(args[0].toInt() in vm.runner!!.keysHeld) }
