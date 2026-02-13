@@ -411,13 +411,18 @@ class VM(
                                     }
                                 }
                                 else -> {
-                                    val target = resolveInstance(effectiveInstType, currentSelf, currentOther)
-                                    if (target != null) {
-                                        if (isArray) target.setArrayElement(v.name, arrayIdx, value)
-                                        else target.setBuiltinOrVar(v.name, value)
+                                    // Check builtin arrays first (view_xview, etc.)
+                                    if (isArray && setBuiltinArrayElement(v.name, arrayIdx, value)) {
+                                        // handled
                                     } else {
-                                        if (isArray) currentSelf.setArrayElement(v.name, arrayIdx, value)
-                                        else currentSelf.setBuiltinOrVar(v.name, value)
+                                        val target = resolveInstance(effectiveInstType, currentSelf, currentOther)
+                                        if (target != null) {
+                                            if (isArray) target.setArrayElement(v.name, arrayIdx, value)
+                                            else target.setBuiltinOrVar(v.name, value)
+                                        } else {
+                                            if (isArray) currentSelf.setArrayElement(v.name, arrayIdx, value)
+                                            else currentSelf.setBuiltinOrVar(v.name, value)
+                                        }
                                     }
                                 }
                             }
@@ -703,8 +708,59 @@ class VM(
                 val view = room?.views?.getOrNull(index)
                 GMLValue.of(view?.enabled == true)
             }
+            "view_xport" -> {
+                val view = room?.views?.getOrNull(index)
+                GMLValue.of(view?.portX?.toDouble() ?: 0.0)
+            }
+            "view_yport" -> {
+                val view = room?.views?.getOrNull(index)
+                GMLValue.of(view?.portY?.toDouble() ?: 0.0)
+            }
+            "view_hborder" -> {
+                val view = room?.views?.getOrNull(index)
+                GMLValue.of(view?.borderH?.toDouble() ?: 0.0)
+            }
+            "view_vborder" -> {
+                val view = room?.views?.getOrNull(index)
+                GMLValue.of(view?.borderV?.toDouble() ?: 0.0)
+            }
+            "view_hspeed" -> {
+                val view = room?.views?.getOrNull(index)
+                GMLValue.of(view?.speedH?.toDouble() ?: 0.0)
+            }
+            "view_vspeed" -> {
+                val view = room?.views?.getOrNull(index)
+                GMLValue.of(view?.speedV?.toDouble() ?: 0.0)
+            }
+            "view_object" -> {
+                val view = room?.views?.getOrNull(index)
+                GMLValue.of(view?.followObjectId?.toDouble() ?: -1.0)
+            }
             else -> null // Not a known builtin array
         }
+    }
+
+    private fun setBuiltinArrayElement(name: String, index: Int, value: GMLValue): Boolean {
+        val room = runner!!.currentRoom ?: return false
+        val view = room.views.getOrNull(index) ?: return false
+        when (name) {
+            "view_xview" -> view.viewX = value.toReal().toInt()
+            "view_yview" -> view.viewY = value.toReal().toInt()
+            "view_wview" -> view.viewW = value.toReal().toInt()
+            "view_hview" -> view.viewH = value.toReal().toInt()
+            "view_wport" -> view.portW = value.toReal().toInt()
+            "view_hport" -> view.portH = value.toReal().toInt()
+            "view_xport" -> view.portX = value.toReal().toInt()
+            "view_yport" -> view.portY = value.toReal().toInt()
+            "view_hborder" -> view.borderH = value.toReal().toInt()
+            "view_vborder" -> view.borderV = value.toReal().toInt()
+            "view_hspeed" -> view.speedH = value.toReal().toInt()
+            "view_vspeed" -> view.speedV = value.toReal().toInt()
+            "view_object" -> view.followObjectId = value.toReal().toInt()
+            "view_visible" -> view.enabled = value.toReal() > 0.5
+            else -> return false
+        }
+        return true
     }
 
     private fun getGlobalArrayElement(name: String, index: Int): GMLValue {

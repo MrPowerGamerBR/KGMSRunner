@@ -82,20 +82,20 @@ class RoomBackgroundData(
 )
 
 class RoomViewData(
-    val enabled: Boolean,
-    val viewX: Int,
-    val viewY: Int,
-    val viewW: Int,
-    val viewH: Int,
-    val portX: Int,
-    val portY: Int,
-    val portW: Int,
-    val portH: Int,
-    val borderH: Int,
-    val borderV: Int,
-    val speedH: Int,
-    val speedV: Int,
-    val followObjectId: Int,
+    var enabled: Boolean,
+    var viewX: Int,
+    var viewY: Int,
+    var viewW: Int,
+    var viewH: Int,
+    var portX: Int,
+    var portY: Int,
+    var portW: Int,
+    var portH: Int,
+    var borderH: Int,
+    var borderV: Int,
+    var speedH: Int,
+    var speedV: Int,
+    var followObjectId: Int,
 )
 
 class RoomInstanceData(
