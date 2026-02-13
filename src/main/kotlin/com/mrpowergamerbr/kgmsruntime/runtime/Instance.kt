@@ -1,6 +1,8 @@
 package com.mrpowergamerbr.kgmsruntime.runtime
 
+import com.mrpowergamerbr.kgmsruntime.data.GameObjectData
 import com.mrpowergamerbr.kgmsruntime.vm.GMLValue
+import com.mrpowergamerbr.kgmsruntime.vm.VM
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -202,5 +204,9 @@ class Instance(
             "path_scale" -> pathScale = value.toReal()
             else -> variables[name] = value
         }
+    }
+
+    fun getObjectData(vm: VM): GameObjectData {
+        return vm.gameData.objects[objectIndex]
     }
 }
