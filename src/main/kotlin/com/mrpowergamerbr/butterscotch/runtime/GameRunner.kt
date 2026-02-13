@@ -1,11 +1,11 @@
-package com.mrpowergamerbr.kgmsruntime.runtime
+package com.mrpowergamerbr.butterscotch.runtime
 
-import com.mrpowergamerbr.kgmsruntime.KGMSRuntime
-import com.mrpowergamerbr.kgmsruntime.data.GameData
-import com.mrpowergamerbr.kgmsruntime.data.RoomData
-import com.mrpowergamerbr.kgmsruntime.graphics.Renderer
-import com.mrpowergamerbr.kgmsruntime.vm.GMLValue
-import com.mrpowergamerbr.kgmsruntime.vm.VM
+import com.mrpowergamerbr.butterscotch.Butterscotch
+import com.mrpowergamerbr.butterscotch.data.GameData
+import com.mrpowergamerbr.butterscotch.data.RoomData
+import com.mrpowergamerbr.butterscotch.graphics.Renderer
+import com.mrpowergamerbr.butterscotch.vm.GMLValue
+import com.mrpowergamerbr.butterscotch.vm.VM
 import kotlin.math.*
 
 class GameRunner(
@@ -321,7 +321,7 @@ class GameRunner(
         }
     }
 
-    private fun drawTile(tile: com.mrpowergamerbr.kgmsruntime.data.RoomTileData) {
+    private fun drawTile(tile: com.mrpowergamerbr.butterscotch.data.RoomTileData) {
         if (tile.bgDefIndex < 0 || tile.bgDefIndex >= gameData.backgrounds.size) return
         val bgDef = gameData.backgrounds[tile.bgDefIndex]
         if (bgDef.tpagIndex < 0) return
@@ -424,9 +424,9 @@ class GameRunner(
     }
 
     fun fireEvent(inst: Instance, eventType: Int, subtype: Int, other: Instance? = null) {
-        if (KGMSRuntime.traceFireEvents.isNotEmpty()) {
+        if (Butterscotch.traceFireEvents.isNotEmpty()) {
             val objectData = inst.getObjectData(vm)
-            if (KGMSRuntime.traceFireEvents.contains("*") || objectData.name in KGMSRuntime.traceFireEvents) {
+            if (Butterscotch.traceFireEvents.contains("*") || objectData.name in Butterscotch.traceFireEvents) {
                 println("[DEBUG] Firing event for ${objectData.name} (${inst.id}) with type=$eventType subtype=$subtype other=${other?.getObjectData(vm)?.name ?: "null"} at frame=$frameCount")
             }
         }

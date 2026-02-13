@@ -1,8 +1,8 @@
-package com.mrpowergamerbr.kgmsruntime.builtin
+package com.mrpowergamerbr.butterscotch.builtin
 
-import com.mrpowergamerbr.kgmsruntime.runtime.GameRunner
-import com.mrpowergamerbr.kgmsruntime.vm.GMLValue
-import com.mrpowergamerbr.kgmsruntime.vm.VM
+import com.mrpowergamerbr.butterscotch.runtime.GameRunner
+import com.mrpowergamerbr.butterscotch.vm.GMLValue
+import com.mrpowergamerbr.butterscotch.vm.VM
 import kotlin.math.*
 import kotlin.random.Random
 

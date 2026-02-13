@@ -1,6 +1,6 @@
-package com.mrpowergamerbr.kgmsruntime.graphics
+package com.mrpowergamerbr.butterscotch.graphics
 
-import com.mrpowergamerbr.kgmsruntime.data.GameData
+import com.mrpowergamerbr.butterscotch.data.GameData
 import org.joml.Matrix4f
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
@@ -556,7 +556,7 @@ void main() {
         return text.split("\n").size * font.emSize.toDouble()
     }
 
-    private fun measureLineWidth(font: com.mrpowergamerbr.kgmsruntime.data.FontData, line: String): Double {
+    private fun measureLineWidth(font: com.mrpowergamerbr.butterscotch.data.FontData, line: String): Double {
         var w = 0.0
         for (ch in line) {
             val glyph = font.glyphs.find { it.character == ch.code }

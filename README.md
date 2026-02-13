@@ -1,4 +1,4 @@
-# KGMSRunner
+# Butterscotch
 
 > [!CAUTION]
 > This is "vibe coded" to see how further Claude Code (Opus 4.6) can get trying to implement a GameMaker: Studio runner, and because it is fun!
@@ -7,7 +7,7 @@
 
 ## CLI parameters & debug features
 
-KGMSRunner has some CLI parameters and debug features that are useful when debugging the runner
+Butterscotch has some CLI parameters and debug features that are useful when debugging the runner
 
 * `--debug`: Enables debug features
 * `--screenshot file-%s.png`: Saves a screenshot of the game to the specified file, the `%s` is the current frame index
@@ -25,7 +25,7 @@ When `--debug` is enabled, the following features are enabled:
 * `Page Up` and `Page Down`: Moves to the next room and to the previous room, respectively.
 * `P` pauses the game, and `O` steps the game forward by one frame.
 
-## Undertale running via KGMSRunner
+## Undertale running via Butterscotch
 
 It is VERY buggy... but I will be honest, it is kinda impressive that it *does* run.
 

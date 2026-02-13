@@ -1,8 +1,8 @@
-package com.mrpowergamerbr.kgmsruntime.runtime
+package com.mrpowergamerbr.butterscotch.runtime
 
-import com.mrpowergamerbr.kgmsruntime.data.GameObjectData
-import com.mrpowergamerbr.kgmsruntime.vm.GMLValue
-import com.mrpowergamerbr.kgmsruntime.vm.VM
+import com.mrpowergamerbr.butterscotch.data.GameObjectData
+import com.mrpowergamerbr.butterscotch.vm.GMLValue
+import com.mrpowergamerbr.butterscotch.vm.VM
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos

@@ -1,4 +1,4 @@
-package com.mrpowergamerbr.kgmsruntime.data
+package com.mrpowergamerbr.butterscotch.data
 
 class Gen8Info(
     val bytecodeVersion: Int,

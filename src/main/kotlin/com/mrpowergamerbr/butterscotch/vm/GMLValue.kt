@@ -1,4 +1,4 @@
-package com.mrpowergamerbr.kgmsruntime.vm
+package com.mrpowergamerbr.butterscotch.vm
 
 sealed class GMLValue {
     data class Real(val value: Double) : GMLValue()

@@ -1,4 +1,4 @@
-package com.mrpowergamerbr.kgmsruntime
+package com.mrpowergamerbr.butterscotch
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.default
@@ -7,9 +7,9 @@ import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.double
 import com.github.ajalt.clikt.parameters.types.int
-import com.mrpowergamerbr.kgmsruntime.data.FormReader
+import com.mrpowergamerbr.butterscotch.data.FormReader
 
-class KGMSRuntimeCommand : CliktCommand(name = "kgmsruntime") {
+class ButterscotchCLICommand : CliktCommand(name = "butterscotch") {
     private val screenshot by option("--screenshot", help = "Screenshot filename pattern (%s = frame number)")
     private val screenshotAtFrame by option("--screenshot-at-frame", help = "Frame number to capture screenshot").int().multiple()
     private val room by option("--room", help = "Start at a specific room (name or index)")
@@ -26,12 +26,12 @@ class KGMSRuntimeCommand : CliktCommand(name = "kgmsruntime") {
     private val playbackInputs by option("--playback-inputs", help = "Playback inputs from JSON file")
 
     override fun run() {
-        KGMSRuntime.debugObj = debugObj.toSet()
-        KGMSRuntime.traceCalls = traceCalls.toSet()
-        KGMSRuntime.traceFireEvents = traceEvents.toSet()
-        KGMSRuntime.traceInstructions = traceInstructions.toSet()
-        KGMSRuntime.ignoreFunctionTracedCalls = ignoreFunctionTracedCalls.toSet()
-        KGMSRuntime.debug = debug
+        Butterscotch.debugObj = debugObj.toSet()
+        Butterscotch.traceCalls = traceCalls.toSet()
+        Butterscotch.traceFireEvents = traceEvents.toSet()
+        Butterscotch.traceInstructions = traceInstructions.toSet()
+        Butterscotch.ignoreFunctionTracedCalls = ignoreFunctionTracedCalls.toSet()
+        Butterscotch.debug = debug
 
         if (listRooms) {
             val gameData = FormReader("undertale/game.unx").read()
@@ -41,7 +41,7 @@ class KGMSRuntimeCommand : CliktCommand(name = "kgmsruntime") {
             return
         }
 
-        KGMSRuntime(
+        Butterscotch(
             screenshotPattern = screenshot,
             screenshotAtFrames = screenshotAtFrame.toSet(),
             startRoom = room,
@@ -53,5 +53,5 @@ class KGMSRuntimeCommand : CliktCommand(name = "kgmsruntime") {
 }
 
 fun main(args: Array<String>) {
-    KGMSRuntimeCommand().main(args)
+    ButterscotchCLICommand().main(args)
 }

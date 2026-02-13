@@ -11,7 +11,7 @@
 ## Module Structure
 
 ```
-com.mrpowergamerbr.kgmsruntime/
+com.mrpowergamerbr.butterscotch/
   KGMSRuntime.kt          - Entry point, game loop, GLFW window
 
   data/                    - Data file parsing

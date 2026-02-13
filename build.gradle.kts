@@ -5,7 +5,7 @@ plugins {
 }
 
 application {
-    mainClass.set("com.mrpowergamerbr.kgmsruntime.KGMSRuntimeLauncherKt")
+    mainClass.set("com.mrpowergamerbr.butterscotch.ButterscotchLauncherKt")
 }
 
 group = "com.mrpowergamerbr.kgmsruntime"

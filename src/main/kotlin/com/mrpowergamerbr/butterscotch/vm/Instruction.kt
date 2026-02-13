@@ -1,4 +1,4 @@
-package com.mrpowergamerbr.kgmsruntime.vm
+package com.mrpowergamerbr.butterscotch.vm
 
 object Opcodes {
     const val CONV = 0x07

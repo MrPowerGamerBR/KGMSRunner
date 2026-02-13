@@ -1,9 +1,9 @@
-package com.mrpowergamerbr.kgmsruntime.vm
+package com.mrpowergamerbr.butterscotch.vm
 
-import com.mrpowergamerbr.kgmsruntime.KGMSRuntime
-import com.mrpowergamerbr.kgmsruntime.data.GameData
-import com.mrpowergamerbr.kgmsruntime.runtime.GameRunner
-import com.mrpowergamerbr.kgmsruntime.runtime.Instance
+import com.mrpowergamerbr.butterscotch.Butterscotch
+import com.mrpowergamerbr.butterscotch.data.GameData
+import com.mrpowergamerbr.butterscotch.runtime.GameRunner
+import com.mrpowergamerbr.butterscotch.runtime.Instance
 
 class DecodedCode(
     val instructions: List<Instruction>,
@@ -193,7 +193,7 @@ class VM(
 
         val entryName = gameData.codeEntries[codeEntryIndex].name
         // println("  EXEC: $entryName (idx=$codeEntryIndex)")
-        val tracing = KGMSRuntime.traceInstructions.contains("*") || entryName in KGMSRuntime.traceInstructions
+        val tracing = Butterscotch.traceInstructions.contains("*") || entryName in Butterscotch.traceInstructions
         val prevTrace = traceCodeEntry
 
         val stack = ArrayDeque<GMLValue>()
@@ -835,9 +835,9 @@ class VM(
     var currentOther: Instance? = null
 
     fun callFunction(name: String, args: List<GMLValue>, self: Instance, other: Instance, locals: MutableMap<Int, GMLValue>): GMLValue {
-        if (KGMSRuntime.traceCalls.isNotEmpty() && name !in KGMSRuntime.ignoreFunctionTracedCalls) {
+        if (Butterscotch.traceCalls.isNotEmpty() && name !in Butterscotch.ignoreFunctionTracedCalls) {
             val objectData = self.getObjectData(this)
-            if (KGMSRuntime.traceCalls.contains("*") || objectData.name in KGMSRuntime.traceCalls) {
+            if (Butterscotch.traceCalls.contains("*") || objectData.name in Butterscotch.traceCalls) {
                 println("  CALL (${objectData.name}): $name(${args.joinToString { it.toStr().take(30) }})")
             }
         }

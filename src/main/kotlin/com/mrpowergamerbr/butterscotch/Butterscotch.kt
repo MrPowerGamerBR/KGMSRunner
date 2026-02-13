@@ -1,11 +1,11 @@
-package com.mrpowergamerbr.kgmsruntime
+package com.mrpowergamerbr.butterscotch
 
-import com.mrpowergamerbr.kgmsruntime.builtin.registerBuiltins
-import com.mrpowergamerbr.kgmsruntime.data.FormReader
-import com.mrpowergamerbr.kgmsruntime.data.GameData
-import com.mrpowergamerbr.kgmsruntime.graphics.Renderer
-import com.mrpowergamerbr.kgmsruntime.runtime.GameRunner
-import com.mrpowergamerbr.kgmsruntime.vm.VM
+import com.mrpowergamerbr.butterscotch.builtin.registerBuiltins
+import com.mrpowergamerbr.butterscotch.data.FormReader
+import com.mrpowergamerbr.butterscotch.data.GameData
+import com.mrpowergamerbr.butterscotch.graphics.Renderer
+import com.mrpowergamerbr.butterscotch.runtime.GameRunner
+import com.mrpowergamerbr.butterscotch.vm.VM
 import org.lwjgl.BufferUtils
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW
@@ -17,7 +17,7 @@ import org.lwjgl.system.MemoryUtil
 import kotlinx.serialization.json.*
 import java.io.File
 
-class KGMSRuntime(
+class Butterscotch(
     private val screenshotPattern: String? = null,
     private val screenshotAtFrames: Set<Int> = emptySet(),
     private val startRoom: String? = null,
@@ -73,7 +73,7 @@ class KGMSRuntime(
     )
 
     fun run() {
-        println("KGMSRuntime - GameMaker: Studio Bytecode 16 Runner")
+        println("Butterscotch - GameMaker: Studio (Bytecode 16) Runner")
         println("Loading game data...")
 
         val gameData = FormReader("undertale/game.unx").read()
@@ -159,7 +159,7 @@ class KGMSRuntime(
         GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE)
         GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, GLFW.GLFW_FALSE)
 
-        window = GLFW.glfwCreateWindow(width, height, "KGMSRuntime - $title", MemoryUtil.NULL, MemoryUtil.NULL)
+        window = GLFW.glfwCreateWindow(width, height, "Butterscotch - $title", MemoryUtil.NULL, MemoryUtil.NULL)
         if (window == MemoryUtil.NULL) throw RuntimeException("Failed to create GLFW window")
 
         if (!headless) {

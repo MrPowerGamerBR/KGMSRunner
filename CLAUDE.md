@@ -1,4 +1,4 @@
-# KGMSRuntime
+# Butterscotch
 
 A GameMaker: Studio 1.x runtime (Bytecode 16) in Kotlin, targeting Undertale v1.08.
 
