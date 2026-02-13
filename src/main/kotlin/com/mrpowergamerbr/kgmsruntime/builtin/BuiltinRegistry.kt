@@ -111,6 +111,14 @@ fun registerBuiltins(vm: VM) {
             args[4].toReal(), args[5].toReal(), args[6].toReal(), args[7].toInt(), args[8].toReal())
         GMLValue.ZERO
     }
+    f["draw_sprite_part"] = { _, args ->
+        vm.runner!!.renderer.drawSpritePart(
+            args[0].toInt(), args[1].toInt(),
+            args[2].toInt(), args[3].toInt(), args[4].toInt(), args[5].toInt(),
+            args[6].toReal(), args[7].toReal()
+        )
+        GMLValue.ZERO
+    }
     f["draw_set_color"] = { _, args -> vm.runner!!.renderer.drawColor = args[0].toInt(); GMLValue.ZERO }
     f["draw_set_alpha"] = { _, args -> vm.runner!!.renderer.drawAlpha = args[0].toReal(); GMLValue.ZERO }
     f["draw_get_color"] = { _, _ -> GMLValue.of(vm.runner!!.renderer.drawColor.toDouble()) }
