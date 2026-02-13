@@ -19,6 +19,7 @@ class ButterscotchCLICommand : CliktCommand(name = "butterscotch") {
     private val ignoreFunctionTracedCalls by option("--ignore-function-traced-calls", help = "Ignore specific function when tracing calls, useful to trim down logs").multiple()
     private val traceEvents by option("--trace-events", help = "Print all fired events for a specific object, can be set to \"*\" to log all objects").multiple()
     private val traceInstructions by option("--trace-instructions", help = "Print all bytecode instructions for a specific GML script, can be set to \"*\" to log all scripts, VERY NOISY").multiple()
+    private val traceGlobals by option("--trace-globals", help = "Trace changes to a global variable (e.g. \"interact\"), can be set to \"*\" to log all").multiple()
 
     private val debug by option("--debug", help = "Enable debug mode").flag()
     private val speed by option("--speed", help = "Game speed multiplier (e.g. 2.0 = twice as fast)").double().default(1.0)
@@ -31,6 +32,7 @@ class ButterscotchCLICommand : CliktCommand(name = "butterscotch") {
         Butterscotch.traceFireEvents = traceEvents.toSet()
         Butterscotch.traceInstructions = traceInstructions.toSet()
         Butterscotch.ignoreFunctionTracedCalls = ignoreFunctionTracedCalls.toSet()
+        Butterscotch.traceGlobals = traceGlobals.toSet()
         Butterscotch.debug = debug
 
         if (listRooms) {

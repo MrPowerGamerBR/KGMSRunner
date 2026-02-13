@@ -32,6 +32,7 @@ class Butterscotch(
         lateinit var ignoreFunctionTracedCalls: Set<String>
         lateinit var traceFireEvents: Set<String>
         lateinit var traceInstructions: Set<String>
+        lateinit var traceGlobals: Set<String>
         var debug = false
     }
 

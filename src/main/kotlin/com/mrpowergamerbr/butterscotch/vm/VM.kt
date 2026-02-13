@@ -426,7 +426,10 @@ class VM(
                                 }
                                 effectiveInstType == InstanceTypes.GLOBAL -> {
                                     if (isArray) setGlobalArrayElement(v.name, arrayIdx, value)
-                                    else runner!!.globalVariables[v.name] = value
+                                    else {
+                                        traceGlobalWrite(v.name, value, entryName)
+                                        runner!!.globalVariables[v.name] = value
+                                    }
                                 }
                                 rawInstType == InstanceTypes.STACKTOP -> {
                                     // value (popped above) actually holds the instanceTarget (stack ordering: [realValue, target] with target on top)
@@ -718,12 +721,26 @@ class VM(
 
     private fun setGlobalBuiltin(name: String, value: GMLValue) {
         val r = runner!!
+        traceGlobalWrite(name, value, null)
         when (name) {
             "room_speed" -> {} // Read-only at runtime for now
             "keyboard_lastkey" -> r.keyboardLastKey = value.toInt()
             "room_persistent" -> r.roomPersistentFlags[r.currentRoomIndex] = value.toBool()
             else -> r.globalVariables[name] = value
         }
+    }
+
+    private fun traceGlobalWrite(name: String, value: GMLValue, codeName: String?) {
+        if (Butterscotch.traceGlobals.isEmpty())
+            return
+
+        if ("*" !in Butterscotch.traceGlobals && name !in Butterscotch.traceGlobals)
+            return
+
+        val r = this.runner!!
+        val old = r.globalVariables[name] ?: GMLValue.ZERO
+        val code = codeName ?: "builtin"
+        println("  [TRACE] global.$name = $value (was $old) at frame=${r.frameCount}, code=$code")
     }
 
     /**
