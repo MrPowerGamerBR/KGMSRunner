@@ -398,6 +398,14 @@ fun registerBuiltins(vm: VM) {
         }
         GMLValue.ZERO
     }
+    f["event_user"] = { v, args ->
+        val self = v.currentSelf
+        if (self != null) {
+            val userEventNum = args[0].toInt()
+            vm.runner!!.fireEvent(self, GameRunner.EVENT_OTHER, 10 + userEventNum)
+        }
+        GMLValue.ZERO
+    }
     f["variable_global_exists"] = { _, args ->
         GMLValue.of(args[0].toStr() in vm.runner!!.globalVariables)
     }
