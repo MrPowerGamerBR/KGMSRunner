@@ -386,16 +386,18 @@ class VM(
                             val arrayIdx = if (isArray) (if (stack.isNotEmpty()) stack.removeLast() else GMLValue.ZERO).toInt() else -1
                             // For array access, GM:S pushes an instance target between value and index
                             val arrayInstTarget = if (isArray) (if (stack.isNotEmpty()) stack.removeLast() else GMLValue.ZERO).toInt() else 0
-                            val value = if (stack.isNotEmpty()) stack.removeLast() else GMLValue.ZERO
 
                             if (isStacktop) {
-                                // Dot-access store: instance ID is on the stack (e.g., face.image_xscale = -1)
+                                // Dot-access store: stack has [value, instanceTarget] with instanceTarget on top
+                                // Pop instanceTarget first, then value
                                 val targetId = if (stack.isNotEmpty()) stack.removeLast() else GMLValue.ZERO
+                                val value = if (stack.isNotEmpty()) stack.removeLast() else GMLValue.ZERO
                                 val target = runner!!.findInstancesByObjectOrId(targetId.toInt()).firstOrNull()
                                 if (target != null) {
                                     target.setBuiltinOrVar(v.name, value)
                                 }
                             } else {
+                            val value = if (stack.isNotEmpty()) stack.removeLast() else GMLValue.ZERO
                             // Determine instance type: for array, use the popped instance target;
                             // for non-array, use instr.extra or fall back to VARI instanceType
                             val rawInstType = instr.extra
@@ -427,11 +429,12 @@ class VM(
                                     else runner!!.globalVariables[v.name] = value
                                 }
                                 rawInstType == InstanceTypes.STACKTOP -> {
-                                    val targetId = if (stack.isNotEmpty()) stack.removeLast() else GMLValue.ZERO
-                                    val target = runner!!.findInstancesByObjectOrId(targetId.toInt()).firstOrNull()
+                                    // value (popped above) actually holds the instanceTarget (stack ordering: [realValue, target] with target on top)
+                                    val realValue = if (stack.isNotEmpty()) stack.removeLast() else GMLValue.ZERO
+                                    val target = runner!!.findInstancesByObjectOrId(value.toInt()).firstOrNull()
                                     if (target != null) {
-                                        if (isArray) target.setArrayElement(v.name, arrayIdx, value)
-                                        else target.setBuiltinOrVar(v.name, value)
+                                        if (isArray) target.setArrayElement(v.name, arrayIdx, realValue)
+                                        else target.setBuiltinOrVar(v.name, realValue)
                                     }
                                 }
                                 else -> {
