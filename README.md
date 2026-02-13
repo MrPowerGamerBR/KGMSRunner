@@ -23,6 +23,7 @@ KGMSRunner has some CLI parameters and debug features that are useful when debug
 When `--debug` is enabled, the following features are enabled:
 
 * `Page Up` and `Page Down`: Moves to the next room and to the previous room, respectively.
+* `P` pauses the game, and `O` steps the game forward by one frame.
 
 ## Undertale running via KGMSRunner
 

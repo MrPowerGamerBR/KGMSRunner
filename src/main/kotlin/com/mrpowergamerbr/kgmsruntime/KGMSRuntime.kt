@@ -36,6 +36,8 @@ class KGMSRuntime(
     private var framebufferScaleY = 1.0f
     private var windowWidth = 0
     private var windowHeight = 0
+    private var debugPaused = false
+    private var debugStepOneFrame = false
 
     // GM key code mapping (VK codes)
     private val glfwToGMKey = mapOf(
@@ -154,6 +156,20 @@ class KGMSRuntime(
                                 if (prev >= 0) runner.gotoRoom(prev)
                                 return@glfwSetKeyCallback
                             }
+
+                            GLFW.GLFW_KEY_P -> {
+                                debugPaused = !debugPaused
+                                println("[DEBUG] ${if (debugPaused) "Paused" else "Unpaused"}")
+                                return@glfwSetKeyCallback
+                            }
+
+                            GLFW.GLFW_KEY_O -> {
+                                if (debugPaused) {
+                                    println("[DEBUG] Frame Stepped (Frame: ${runner.frameCount})")
+                                    debugStepOneFrame = true
+                                }
+                                return@glfwSetKeyCallback
+                            }
                         }
                     }
                 }
@@ -251,8 +267,21 @@ class KGMSRuntime(
                 accumulator = targetFrameTime
             }
 
-            if (accumulator >= targetFrameTime) {
-                accumulator -= targetFrameTime
+            if (debugPaused && !debugStepOneFrame) {
+                // While paused, just poll for input events without advancing the game
+                GLFW.glfwWaitEventsTimeout(0.05)
+                lastTime = GLFW.glfwGetTime()
+                accumulator = 0.0
+                continue
+            }
+
+            if (accumulator >= targetFrameTime || debugStepOneFrame) {
+                if (!debugStepOneFrame) {
+                    accumulator -= targetFrameTime
+                } else {
+                    accumulator = 0.0
+                    debugStepOneFrame = false
+                }
                 frameCount++
                 if (frameCount <= 3) println("  Frame $frameCount: room=${runner.currentRoom?.name}, instances=${runner.instances.size}")
 
