@@ -277,7 +277,7 @@ class GameRunner(
                 // Draw foreground backgrounds
                 drawRoomBackgrounds(room, true)
 
-                // Draw path overlays on top
+                // Draw debug overlays on top
                 if (Butterscotch.drawPaths) drawPathOverlays(room)
             }
         } else {
@@ -473,6 +473,8 @@ class GameRunner(
                     // AABB overlap test (bbox values are exclusive-end on right/bottom)
                     if (instBBox.left < otherBBox.right && instBBox.right > otherBBox.left &&
                         instBBox.top < otherBBox.bottom && instBBox.bottom > otherBBox.top) {
+                        // Precise mask check if either sprite uses precise collision
+                        if (!checkPreciseOverlap(inst, other)) continue
                         fireEvent(inst, EVENT_COLLISION, targetObjId, other)
                         break // Only fire once per target object type per instance
                     }
@@ -945,6 +947,93 @@ class GameRunner(
         val y1 = inst.y + (s.marginTop - s.originY) * inst.imageYscale
         val y2 = inst.y + (s.marginBottom + 1 - s.originY) * inst.imageYscale
         return BBox(minOf(x1, x2), maxOf(x1, x2), minOf(y1, y2), maxOf(y1, y2))
+    }
+
+    /**
+     * Returns the effective sprite used for collision masking for an instance.
+     * Uses maskIndex if set, otherwise spriteIndex.
+     */
+    private fun getCollisionSprite(inst: Instance): com.mrpowergamerbr.butterscotch.data.SpriteData? {
+        val spriteIdx = if (inst.maskIndex >= 0) inst.maskIndex else inst.spriteIndex
+        if (spriteIdx !in gameData.sprites.indices) return null
+        return gameData.sprites[spriteIdx]
+    }
+
+    /**
+     * Check if a world-space point hits a sprite's collision mask pixel.
+     * Returns true if the mask bit is set at that world position.
+     */
+    fun checkMaskPixel(
+        sprite: com.mrpowergamerbr.butterscotch.data.SpriteData,
+        frameIndex: Int,
+        worldX: Double, worldY: Double,
+        instX: Double, instY: Double,
+        xscale: Double, yscale: Double
+    ): Boolean {
+        if (sprite.masks.isEmpty()) return true // No mask data, treat as solid
+        if (sprite.collisionMaskType != 1) return true // Not precise, treat as solid (bbox already passed)
+
+        // Transform world coords to sprite-local coords
+        val localX = (worldX - instX) / xscale + sprite.originX
+        val localY = (worldY - instY) / yscale + sprite.originY
+
+        val col = localX.toInt()
+        val row = localY.toInt()
+        if (col < 0 || col >= sprite.width || row < 0 || row >= sprite.height) return false
+
+        // Select mask frame
+        val maskIdx = if (sprite.masks.size > 1) frameIndex % sprite.masks.size else 0
+        val mask = sprite.masks[maskIdx]
+        val stride = (sprite.width + 7) / 8
+        val byteIdx = row * stride + col / 8
+        if (byteIdx < 0 || byteIdx >= mask.size) return false
+        val bit = (mask[byteIdx].toInt() shr (7 - col % 8)) and 1
+        return bit != 0
+    }
+
+    /**
+     * Check if two instances overlap using precise pixel mask collision.
+     * Both instances must have AABB overlap (fast-reject should be done before calling).
+     */
+    fun checkPreciseOverlap(instA: Instance, instB: Instance): Boolean {
+        val spriteA = getCollisionSprite(instA) ?: return false
+        val spriteB = getCollisionSprite(instB) ?: return false
+
+        // If neither has precise masks, bbox overlap is sufficient
+        val aPrecise = spriteA.collisionMaskType == 1 && spriteA.masks.isNotEmpty()
+        val bPrecise = spriteB.collisionMaskType == 1 && spriteB.masks.isNotEmpty()
+        if (!aPrecise && !bPrecise) return true // Both non-precise, bbox was enough
+
+        val bboxA = computeBBox(instA) ?: return false
+        val bboxB = computeBBox(instB) ?: return false
+
+        // Find overlap region in world space
+        val overlapLeft = maxOf(bboxA.left, bboxB.left)
+        val overlapRight = minOf(bboxA.right, bboxB.right)
+        val overlapTop = maxOf(bboxA.top, bboxB.top)
+        val overlapBottom = minOf(bboxA.bottom, bboxB.bottom)
+
+        if (overlapLeft >= overlapRight || overlapTop >= overlapBottom) return false
+
+        // Determine step size: use the smallest scale for accuracy
+        val stepX = minOf(abs(instA.imageXscale), abs(instB.imageXscale)).coerceAtLeast(0.5)
+        val stepY = minOf(abs(instA.imageYscale), abs(instB.imageYscale)).coerceAtLeast(0.5)
+
+        val frameA = instA.imageIndex.toInt()
+        val frameB = instB.imageIndex.toInt()
+
+        var wy = overlapTop + stepY / 2
+        while (wy < overlapBottom) {
+            var wx = overlapLeft + stepX / 2
+            while (wx < overlapRight) {
+                val aHit = if (aPrecise) checkMaskPixel(spriteA, frameA, wx, wy, instA.x, instA.y, instA.imageXscale, instA.imageYscale) else true
+                val bHit = if (bPrecise) checkMaskPixel(spriteB, frameB, wx, wy, instB.x, instB.y, instB.imageXscale, instB.imageYscale) else true
+                if (aHit && bHit) return true
+                wx += stepX
+            }
+            wy += stepY
+        }
+        return false
     }
 
     fun findInstancesByObjectOrId(targetId: Int): List<Instance> {

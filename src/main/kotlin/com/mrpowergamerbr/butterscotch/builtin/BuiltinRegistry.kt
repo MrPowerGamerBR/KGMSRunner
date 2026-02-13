@@ -665,7 +665,7 @@ fun registerBuiltins(vm: VM) {
         val px = args[0].toReal()
         val py = args[1].toReal()
         val obj = args[2].toInt()
-        // args[3] = prec (ignored, bbox-only)
+        val prec = args[3].toBool()
         val notme = args[4].toBool()
         val self = v.currentSelf
         val runner = vm.runner
@@ -674,6 +674,13 @@ fun registerBuiltins(vm: VM) {
             if (notme && inst === self) continue
             val bb = runner.computeBBox(inst) ?: continue
             if (px >= bb.left && px < bb.right && py >= bb.top && py < bb.bottom) {
+                if (prec) {
+                    val spriteIdx = if (inst.maskIndex >= 0) inst.maskIndex else inst.spriteIndex
+                    val sprite = if (spriteIdx in vm.gameData.sprites.indices) vm.gameData.sprites[spriteIdx] else null
+                    if (sprite != null && sprite.collisionMaskType == 1 && sprite.masks.isNotEmpty()) {
+                        if (!runner.checkMaskPixel(sprite, inst.imageIndex.toInt(), px, py, inst.x, inst.y, inst.imageXscale, inst.imageYscale)) continue
+                    }
+                }
                 result = inst.id.toDouble()
                 break
             }
@@ -685,7 +692,7 @@ fun registerBuiltins(vm: VM) {
         val qx1 = args[0].toReal(); val qy1 = args[1].toReal()
         val qx2 = args[2].toReal(); val qy2 = args[3].toReal()
         val obj = args[4].toInt()
-        // args[5] = prec (ignored, bbox-only)
+        val prec = args[5].toBool()
         val notme = args[6].toBool()
         val self = v.currentSelf
         val runner = vm.runner
@@ -696,6 +703,28 @@ fun registerBuiltins(vm: VM) {
             if (notme && inst === self) continue
             val bb = runner.computeBBox(inst) ?: continue
             if (ql < bb.right && qr >= bb.left && qt < bb.bottom && qb >= bb.top) {
+                if (prec) {
+                    val spriteIdx = if (inst.maskIndex >= 0) inst.maskIndex else inst.spriteIndex
+                    val sprite = if (spriteIdx in vm.gameData.sprites.indices) vm.gameData.sprites[spriteIdx] else null
+                    if (sprite != null && sprite.collisionMaskType == 1 && sprite.masks.isNotEmpty()) {
+                        // Check if any mask pixel within the overlap region is solid
+                        val overlapL = maxOf(ql, bb.left); val overlapR = minOf(qr, bb.right)
+                        val overlapT = maxOf(qt, bb.top); val overlapB = minOf(qb, bb.bottom)
+                        val step = abs(inst.imageXscale).coerceAtLeast(0.5)
+                        val stepY = abs(inst.imageYscale).coerceAtLeast(0.5)
+                        var found = false
+                        var wy = overlapT + stepY / 2
+                        while (wy < overlapB && !found) {
+                            var wx = overlapL + step / 2
+                            while (wx < overlapR && !found) {
+                                if (runner.checkMaskPixel(sprite, inst.imageIndex.toInt(), wx, wy, inst.x, inst.y, inst.imageXscale, inst.imageYscale)) found = true
+                                wx += step
+                            }
+                            wy += stepY
+                        }
+                        if (!found) continue
+                    }
+                }
                 result = inst.id.toDouble()
                 break
             }
@@ -708,7 +737,7 @@ fun registerBuiltins(vm: VM) {
         val cy = args[1].toReal()
         val rad = args[2].toReal()
         val obj = args[3].toInt()
-        // args[4] = prec (ignored, bbox-only)
+        val prec = args[4].toBool()
         val notme = args[5].toBool()
         val self = v.currentSelf
         val runner = vm.runner
@@ -722,6 +751,31 @@ fun registerBuiltins(vm: VM) {
             val dx = cx - nearestX
             val dy = cy - nearestY
             if (dx * dx + dy * dy <= radSq) {
+                if (prec) {
+                    val spriteIdx = if (inst.maskIndex >= 0) inst.maskIndex else inst.spriteIndex
+                    val sprite = if (spriteIdx in vm.gameData.sprites.indices) vm.gameData.sprites[spriteIdx] else null
+                    if (sprite != null && sprite.collisionMaskType == 1 && sprite.masks.isNotEmpty()) {
+                        // Check mask pixels in the overlap of the circle and bbox
+                        val overlapL = maxOf(cx - rad, bb.left); val overlapR = minOf(cx + rad, bb.right)
+                        val overlapT = maxOf(cy - rad, bb.top); val overlapB = minOf(cy + rad, bb.bottom)
+                        val step = abs(inst.imageXscale).coerceAtLeast(0.5)
+                        val stepY = abs(inst.imageYscale).coerceAtLeast(0.5)
+                        var found = false
+                        var wy = overlapT + stepY / 2
+                        while (wy < overlapB && !found) {
+                            var wx = overlapL + step / 2
+                            while (wx < overlapR && !found) {
+                                val ddx = wx - cx; val ddy = wy - cy
+                                if (ddx * ddx + ddy * ddy <= radSq) {
+                                    if (runner.checkMaskPixel(sprite, inst.imageIndex.toInt(), wx, wy, inst.x, inst.y, inst.imageXscale, inst.imageYscale)) found = true
+                                }
+                                wx += step
+                            }
+                            wy += stepY
+                        }
+                        if (!found) continue
+                    }
+                }
                 result = inst.id.toDouble()
                 break
             }
@@ -733,7 +787,7 @@ fun registerBuiltins(vm: VM) {
         val lx1 = args[0].toReal(); val ly1 = args[1].toReal()
         val lx2 = args[2].toReal(); val ly2 = args[3].toReal()
         val obj = args[4].toInt()
-        // args[5] = prec (ignored, bbox-only)
+        val prec = args[5].toBool()
         val notme = args[6].toBool()
         val self = v.currentSelf
         val runner = vm.runner
@@ -758,8 +812,30 @@ fun registerBuiltins(vm: VM) {
                 }
             }
             if (hit) {
-                result = inst.id.toDouble()
-                break
+                if (prec) {
+                    val spriteIdx = if (inst.maskIndex >= 0) inst.maskIndex else inst.spriteIndex
+                    val sprite = if (spriteIdx in vm.gameData.sprites.indices) vm.gameData.sprites[spriteIdx] else null
+                    if (sprite != null && sprite.collisionMaskType == 1 && sprite.masks.isNotEmpty()) {
+                        // Walk the line within the bbox checking mask pixels
+                        val lineLen = sqrt(dx * dx + dy * dy)
+                        val step = abs(inst.imageXscale).coerceAtLeast(0.5)
+                        val steps = if (lineLen > 0) (lineLen / step).toInt().coerceAtLeast(1) else 1
+                        var found = false
+                        for (s in 0..steps) {
+                            val t = tMin + (tMax - tMin) * s.toDouble() / steps
+                            val wx = lx1 + dx * t
+                            val wy = ly1 + dy * t
+                            if (runner.checkMaskPixel(sprite, inst.imageIndex.toInt(), wx, wy, inst.x, inst.y, inst.imageXscale, inst.imageYscale)) {
+                                found = true; break
+                            }
+                        }
+                        if (!found) { hit = false }
+                    }
+                }
+                if (hit) {
+                    result = inst.id.toDouble()
+                    break
+                }
             }
         }
         GMLValue.of(result)

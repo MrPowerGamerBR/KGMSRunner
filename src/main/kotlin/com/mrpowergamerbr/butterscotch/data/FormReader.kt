@@ -209,11 +209,28 @@ class FormReader(private val filePath: String) {
             val marginTop = buf.getInt(ptr + 0x18)
             val originX = buf.getInt(ptr + 0x30)
             val originY = buf.getInt(ptr + 0x34)
+            val sepMasks = buf.getInt(ptr + 0x2C) // 0=AxisAlignedRect, 1=Precise, 2=RotatedRect
             val subImageCount = buf.getInt(ptr + 0x38)
 
             val tpagIndices = (0 until subImageCount).map { j ->
                 val tpagPtr = buf.getInt(ptr + 0x3C + j * 4)
                 tpagByOffset[tpagPtr] ?: -1
+            }
+
+            // Parse collision mask data after TPAG pointers
+            val maskDataOffset = ptr + 0x3C + subImageCount * 4
+            val maskCount = buf.getInt(maskDataOffset)
+            val stride = (width + 7) / 8
+            val maskLen = stride * height
+            val masks = ArrayList<ByteArray>(maskCount)
+            var maskOff = maskDataOffset + 4
+            for (m in 0 until maskCount) {
+                val maskData = ByteArray(maskLen)
+                for (b in 0 until maskLen) {
+                    maskData[b] = buf.get(maskOff + b)
+                }
+                masks.add(maskData)
+                maskOff += maskLen
             }
 
             sprites.add(
@@ -228,6 +245,8 @@ class FormReader(private val filePath: String) {
                     originX = originX,
                     originY = originY,
                     tpagIndices = tpagIndices,
+                    collisionMaskType = sepMasks,
+                    masks = masks,
                 )
             )
         }

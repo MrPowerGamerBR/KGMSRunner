@@ -21,6 +21,8 @@ class SpriteData(
     val originX: Int,
     val originY: Int,
     val tpagIndices: List<Int>,
+    val collisionMaskType: Int,  // 0=AxisAlignedRect, 1=Precise, 2=RotatedRect
+    val masks: List<ByteArray>,  // Bit-packed collision masks (1 per frame or 1 shared)
 )
 
 class BackgroundData(
