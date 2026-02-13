@@ -242,7 +242,8 @@ class GameRunner(
                 }
             }
             // Draw instances at this depth
-            for (inst in instances) {
+            val instancesDuringDraw = instances.toList()
+            for (inst in instancesDuringDraw) {
                 if (!inst.destroyed && inst.depth == depth) {
                     drawInstance(inst)
                 }
