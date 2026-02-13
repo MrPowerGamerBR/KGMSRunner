@@ -18,16 +18,14 @@ import org.lwjgl.system.MemoryUtil
 class KGMSRuntime(
     private val screenshotPattern: String? = null,
     private val screenshotAtFrames: Set<Int> = emptySet(),
-    private val startRoom: String? = null,
-    private val debugObj: Set<String>,
-    private val traceCalls: Set<String>,
-    private val ignoreFunctionTracedCalls: Set<String>
+    private val startRoom: String? = null
 ) {
     companion object {
         // yay static abuse
         lateinit var debugObj: Set<String>
         lateinit var traceCalls: Set<String>
         lateinit var ignoreFunctionTracedCalls: Set<String>
+        var debug = false
     }
 
     private var window: Long = 0
@@ -66,10 +64,6 @@ class KGMSRuntime(
     )
 
     fun run() {
-        KGMSRuntime.debugObj = debugObj
-        KGMSRuntime.traceCalls = traceCalls
-        KGMSRuntime.ignoreFunctionTracedCalls = this@KGMSRuntime.ignoreFunctionTracedCalls
-
         println("KGMSRuntime - GameMaker: Studio Bytecode 16 Runner")
         println("Loading game data...")
 
@@ -145,18 +139,21 @@ class KGMSRuntime(
 
         if (!headless) {
             GLFW.glfwSetKeyCallback(window) { _, key, _, action, _ ->
-                // Debug keys: room navigation
-                if (action == GLFW.GLFW_PRESS) {
-                    when (key) {
-                        GLFW.GLFW_KEY_PAGE_UP -> {
-                            val next = runner.currentRoomIndex + 1
-                            if (next < runner.gameData.rooms.size) runner.gotoRoom(next)
-                            return@glfwSetKeyCallback
-                        }
-                        GLFW.GLFW_KEY_PAGE_DOWN -> {
-                            val prev = runner.currentRoomIndex - 1
-                            if (prev >= 0) runner.gotoRoom(prev)
-                            return@glfwSetKeyCallback
+                if (debug) {
+                    // Debug keys: room navigation
+                    if (action == GLFW.GLFW_PRESS) {
+                        when (key) {
+                            GLFW.GLFW_KEY_PAGE_UP -> {
+                                val next = runner.currentRoomIndex + 1
+                                if (next < runner.gameData.rooms.size) runner.gotoRoom(next)
+                                return@glfwSetKeyCallback
+                            }
+
+                            GLFW.GLFW_KEY_PAGE_DOWN -> {
+                                val prev = runner.currentRoomIndex - 1
+                                if (prev >= 0) runner.gotoRoom(prev)
+                                return@glfwSetKeyCallback
+                            }
                         }
                     }
                 }

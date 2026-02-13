@@ -15,8 +15,14 @@ class KGMSRuntimeCommand : CliktCommand(name = "kgmsruntime") {
     private val debugObj by option("--debug-obj", help = "Debug object name").multiple()
     private val traceCalls by option("--trace-calls", help = "Print all function calls of a specific object, can be set to \"*\" to log all objects").multiple()
     private val ignoreFunctionTracedCalls by option("--ignore-function-traced-calls", help = "Ignore specific function when tracing calls, useful to trim down logs").multiple()
+    private val debug by option("--debug", help = "Enable debug mode").flag()
 
     override fun run() {
+        KGMSRuntime.debugObj = debugObj.toSet()
+        KGMSRuntime.traceCalls = traceCalls.toSet()
+        KGMSRuntime.ignoreFunctionTracedCalls = ignoreFunctionTracedCalls.toSet()
+        KGMSRuntime.debug = debug
+
         if (listRooms) {
             val gameData = FormReader("undertale/game.unx").read()
             for ((i, room) in gameData.rooms.withIndex()) {
@@ -28,10 +34,7 @@ class KGMSRuntimeCommand : CliktCommand(name = "kgmsruntime") {
         KGMSRuntime(
             screenshotPattern = screenshot,
             screenshotAtFrames = screenshotAtFrame.toSet(),
-            startRoom = room,
-            debugObj = debugObj.toSet(),
-            traceCalls = traceCalls.toSet(),
-            ignoreFunctionTracedCalls = ignoreFunctionTracedCalls.toSet()
+            startRoom = room
         ).run()
     }
 }
