@@ -4,7 +4,7 @@ plugins {
 }
 
 application {
-    mainClass.set("com.mrpowergamerbr.kgmsruntime.KGMSRuntime")
+    mainClass.set("com.mrpowergamerbr.kgmsruntime.KGMSRuntimeLauncherKt")
 }
 
 group = "com.mrpowergamerbr.kgmsruntime"

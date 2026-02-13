@@ -277,33 +277,4 @@ class KGMSRuntime(
         STBImageWrite.stbi_flip_vertically_on_write(true)
         STBImageWrite.stbi_write_png(filename, fbW, fbH, 4, buffer, fbW * 4)
     }
-
-    companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
-            KGMSRuntimeCommand().main(args)
-        }
-    }
-}
-
-class KGMSRuntimeCommand : CliktCommand(name = "kgmsruntime") {
-    private val screenshot by option("--screenshot", help = "Screenshot filename pattern (%s = frame number)")
-    private val screenshotAtFrame by option("--screenshot-at-frame", help = "Frame number to capture screenshot").int().multiple()
-    private val room by option("--room", help = "Start at a specific room (name or index)")
-    private val listRooms by option("--list-rooms", help = "List all rooms and exit").flag()
-
-    override fun run() {
-        if (listRooms) {
-            val gameData = FormReader("undertale/game.unx").read()
-            for ((i, room) in gameData.rooms.withIndex()) {
-                println("$i: ${room.name} (${room.width}x${room.height})")
-            }
-            return
-        }
-        KGMSRuntime(
-            screenshotPattern = screenshot,
-            screenshotAtFrames = screenshotAtFrame.toSet(),
-            startRoom = room
-        ).run()
-    }
 }
