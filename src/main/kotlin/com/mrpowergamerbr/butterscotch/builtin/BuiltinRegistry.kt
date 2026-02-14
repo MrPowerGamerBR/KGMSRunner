@@ -129,6 +129,15 @@ fun registerBuiltins(vm: VM) {
         )
         GMLValue.ZERO
     }
+    f["draw_self"] = { v, _ ->
+        val self = v.currentSelf
+        if (self != null && self.spriteIndex >= 0) {
+            vm.runner.renderer.drawSprite(self.spriteIndex, self.imageIndex.toInt(), self.x, self.y,
+                self.imageXscale, self.imageYscale, self.imageAngle,
+                self.imageBlend, self.imageAlpha)
+        }
+        GMLValue.ZERO
+    }
     f["draw_set_color"] = { _, args -> vm.runner.renderer.drawColor = args[0].toInt(); GMLValue.ZERO }
     f["draw_set_alpha"] = { _, args -> vm.runner.renderer.drawAlpha = args[0].toReal(); GMLValue.ZERO }
     f["draw_get_color"] = { _, _ -> GMLValue.of(vm.runner.renderer.drawColor.toDouble()) }
