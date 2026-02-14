@@ -868,7 +868,15 @@ class GameRunner(
             if (inst.destroyed || inst.pathIndex < 0) continue
             // Skip path following when speed is 0 - no movement to apply.
             // This prevents path_action_stop from forcing x/y to the path endpoint every frame.
-            if (inst.pathSpeed == 0.0) continue
+            if (inst.pathSpeed == 0.0) {
+                if (tracing) {
+                    val objName = if (inst.objectIndex in gameData.objects.indices) gameData.objects[inst.objectIndex].name else "??"
+                    if (Butterscotch.tracePaths.contains("*") || objName in Butterscotch.tracePaths) {
+                        println("[TRACE PATH] $objName (id=${inst.id}): skipping path following (pathSpeed=0, pathIdx=${inst.pathIndex}, pathPos=${inst.pathPosition}) frame=$frameCount")
+                    }
+                }
+                continue
+            }
             val pathLength = computePathLength(inst.pathIndex)
             if (pathLength <= 0.0) continue
 
