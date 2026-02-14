@@ -222,16 +222,19 @@ class FormReader(private val filePath: String) {
             val maskCount = buf.getInt(maskDataOffset)
             val stride = (width + 7) / 8
             val maskLen = stride * height
-            val masks = ArrayList<ByteArray>(maskCount)
-            var maskOff = maskDataOffset + 4
-            for (m in 0 until maskCount) {
-                val maskData = ByteArray(maskLen)
-                for (b in 0 until maskLen) {
-                    maskData[b] = buf.get(maskOff + b)
+            val masks = if (maskCount != -1) {
+                val masks = ArrayList<ByteArray>(maskCount)
+                var maskOff = maskDataOffset + 4
+                for (m in 0 until maskCount) {
+                    val maskData = ByteArray(maskLen)
+                    for (b in 0 until maskLen) {
+                        maskData[b] = buf.get(maskOff + b)
+                    }
+                    masks.add(maskData)
+                    maskOff += maskLen
                 }
-                masks.add(maskData)
-                maskOff += maskLen
-            }
+                masks
+            } else emptyList()
 
             sprites.add(
                 SpriteData(
