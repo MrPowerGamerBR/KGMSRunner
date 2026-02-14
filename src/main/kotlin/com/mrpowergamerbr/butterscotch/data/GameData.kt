@@ -180,6 +180,7 @@ class FontGlyphData(
     val height: Int,
     val shift: Int,
     val offset: Int,
+    val subimageIndex: Int = -1, // For sprite-based fonts: which sub-image of the sprite
 )
 
 class FontData(
@@ -190,6 +191,7 @@ class FontData(
     val scaleX: Float,
     val scaleY: Float,
     val glyphs: List<FontGlyphData>,
+    val spriteIndex: Int = -1, // For sprite-based fonts: index into gameData.sprites
 )
 
 class PathPointData(
@@ -220,6 +222,6 @@ class GameData(
     val variables: List<VariableData>,
     val functions: List<FunctionData>,
     val scripts: List<ScriptData>,
-    val fonts: List<FontData>,
+    val fonts: MutableList<FontData>,
     val fileBuffer: java.nio.ByteBuffer,
 )

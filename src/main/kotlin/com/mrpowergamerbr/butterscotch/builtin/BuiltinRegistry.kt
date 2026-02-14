@@ -479,8 +479,124 @@ fun registerBuiltins(vm: VM) {
     }
     f["ds_list_size"] = { _, args -> GMLValue.of(dsLists[args[0].toInt()]?.size?.toDouble() ?: 0.0) }
 
+    // ========== JSON ==========
+    // Helper to recursively convert a kotlinx JsonElement into ds_map/ds_list structures
+    fun jsonElementToGml(element: kotlinx.serialization.json.JsonElement): GMLValue {
+        return when (element) {
+            is kotlinx.serialization.json.JsonPrimitive -> {
+                if (element.isString) {
+                    GMLValue.of(element.content)
+                } else {
+                    // Try number, then boolean
+                    element.content.toDoubleOrNull()?.let { GMLValue.of(it) }
+                        ?: when (element.content) {
+                            "true" -> GMLValue.TRUE
+                            "false" -> GMLValue.FALSE
+                            else -> GMLValue.ZERO // null
+                        }
+                }
+            }
+            is kotlinx.serialization.json.JsonObject -> {
+                val mapId = nextDsId++
+                val map = mutableMapOf<String, GMLValue>()
+                for ((key, value) in element) {
+                    map[key] = jsonElementToGml(value)
+                }
+                dsMaps[mapId] = map
+                GMLValue.of(mapId.toDouble())
+            }
+            is kotlinx.serialization.json.JsonArray -> {
+                val listId = nextDsId++
+                val list = mutableListOf<GMLValue>()
+                for (value in element) {
+                    list.add(jsonElementToGml(value))
+                }
+                dsLists[listId] = list
+                GMLValue.of(listId.toDouble())
+            }
+        }
+    }
+
+    f["json_decode"] = { _, args ->
+        val jsonStr = args[0].toStr()
+        try {
+            val element = kotlinx.serialization.json.Json.parseToJsonElement(jsonStr)
+            jsonElementToGml(element)
+        } catch (e: Exception) {
+            println("WARNING: json_decode failed: ${e.message}")
+            GMLValue.of(-1.0)
+        }
+    }
+
     // ========== File / INI ==========
-    f["file_exists"] = { _, _ -> GMLValue.FALSE }
+    // File text I/O
+    data class TextFileHandle(
+        val lines: List<String>,
+        var lineIndex: Int = 0,
+        var lineRead: Boolean = false,
+    )
+    val textFileHandles = mutableMapOf<Int, TextFileHandle>()
+    var nextFileId = 0
+
+    f["file_exists"] = { _, args ->
+        val filename = args[0].toStr()
+        val file = java.io.File("undertale/$filename")
+        GMLValue.of(file.exists())
+    }
+    f["file_text_open_read"] = { _, args ->
+        val filename = args[0].toStr()
+        val file = java.io.File("undertale/$filename")
+        if (file.exists()) {
+            val id = nextFileId++
+            val content = file.readText()
+            // Split preserving empty trailing lines: split by \n (handle \r\n too)
+            val lines = content.replace("\r\n", "\n").replace("\r", "\n").split("\n")
+            textFileHandles[id] = TextFileHandle(lines)
+            GMLValue.of(id.toDouble())
+        } else {
+            println("WARNING: file_text_open_read: file not found: $filename (resolved to ${file.absolutePath})")
+            GMLValue.of(-1.0)
+        }
+    }
+    f["file_text_eof"] = { _, args ->
+        val handle = textFileHandles[args[0].toInt()]
+        GMLValue.of(handle == null || handle.lineIndex >= handle.lines.size)
+    }
+    f["file_text_readln"] = { _, args ->
+        val handle = textFileHandles[args[0].toInt()]
+        if (handle != null && handle.lineIndex < handle.lines.size) {
+            val line = handle.lines[handle.lineIndex]
+            handle.lineIndex++
+            handle.lineRead = false
+            GMLValue.of(line)
+        } else {
+            GMLValue.EMPTY_STRING
+        }
+    }
+    f["file_text_read_string"] = { _, args ->
+        val handle = textFileHandles[args[0].toInt()]
+        if (handle != null && !handle.lineRead && handle.lineIndex < handle.lines.size) {
+            handle.lineRead = true
+            GMLValue.of(handle.lines[handle.lineIndex])
+        } else {
+            GMLValue.EMPTY_STRING
+        }
+    }
+    f["file_text_read_real"] = { _, args ->
+        val handle = textFileHandles[args[0].toInt()]
+        if (handle != null && !handle.lineRead && handle.lineIndex < handle.lines.size) {
+            handle.lineRead = true
+            val line = handle.lines[handle.lineIndex].trim()
+            GMLValue.of(line.toDoubleOrNull() ?: 0.0)
+        } else {
+            GMLValue.ZERO
+        }
+    }
+    f["file_text_close"] = { _, args ->
+        textFileHandles.remove(args[0].toInt())
+        GMLValue.ZERO
+    }
+
     f["ini_open"] = { _, _ -> GMLValue.ZERO }
     f["ini_close"] = { _, _ -> GMLValue.ZERO }
     f["ini_read_real"] = { _, args -> if (args.size >= 3) args[2] else GMLValue.ZERO }
@@ -492,7 +608,7 @@ fun registerBuiltins(vm: VM) {
     for (name in listOf(
         "audio_play_sound", "audio_stop_sound", "audio_stop_all",
         "audio_is_playing", "audio_sound_gain", "audio_sound_pitch",
-        "audio_group_load", "audio_group_is_loaded",
+        "audio_group_load",
         "audio_create_stream", "audio_destroy_stream",
         "audio_master_gain",
         "sound_play", "sound_stop", "sound_stop_all",
@@ -500,12 +616,22 @@ fun registerBuiltins(vm: VM) {
     )) {
         f[name] = { _, _ -> GMLValue.ZERO }
     }
+    // Audio groups are always "loaded" since we stub audio
+    f["audio_group_is_loaded"] = { _, _ -> GMLValue.ONE }
 
     // Undertale-specific audio stubs
     for (name in listOf(
         "caster_load", "caster_play", "caster_stop", "caster_is_playing",
         "caster_loop", "caster_volume", "caster_position",
         "caster_free", "caster_set_volume", "caster_create",
+    )) {
+        f[name] = { _, _ -> GMLValue.ZERO }
+    }
+
+    // ========== Gamepad stubs ==========
+    for (name in listOf(
+        "gamepad_button_check", "gamepad_button_check_pressed", "gamepad_button_check_released",
+        "gamepad_axis_value", "gamepad_is_connected", "gamepad_get_device_count",
     )) {
         f[name] = { _, _ -> GMLValue.ZERO }
     }
@@ -540,6 +666,67 @@ fun registerBuiltins(vm: VM) {
     f["sprite_prefetch"] = { _, _ -> GMLValue.ZERO }
     f["sprite_prefetch_multi"] = { _, _ -> GMLValue.ZERO }
     f["background_prefetch"] = { _, _ -> GMLValue.ZERO }
+
+    // ========== Font ==========
+    f["font_add_sprite_ext"] = { _, args ->
+        val spriteIdx = args[0].toInt()
+        val stringMap = args[1].toStr()
+        val prop = args[2].toBool()
+        val sep = args[3].toInt()
+        val gd = vm.gameData
+        if (spriteIdx in gd.sprites.indices) {
+            val sprite = gd.sprites[spriteIdx]
+            val glyphs = mutableListOf<com.mrpowergamerbr.butterscotch.data.FontGlyphData>()
+            // Find the max glyph height for emSize
+            var maxHeight = 0
+            var maxWidth = 0
+            for (i in stringMap.indices) {
+                val subimageIdx = i
+                if (subimageIdx !in sprite.tpagIndices.indices) continue
+                val tpagIdx = sprite.tpagIndices[subimageIdx]
+                val tpag = gd.texturePageItems[tpagIdx]
+                if (tpag.sourceWidth > maxWidth) maxWidth = tpag.sourceWidth
+                if (tpag.sourceHeight > maxHeight) maxHeight = tpag.sourceHeight
+            }
+            for (i in stringMap.indices) {
+                val ch = stringMap[i].code
+                val subimageIdx = i
+                if (subimageIdx !in sprite.tpagIndices.indices) continue
+                val tpagIdx = sprite.tpagIndices[subimageIdx]
+                val tpag = gd.texturePageItems[tpagIdx]
+                val glyphWidth = tpag.sourceWidth
+                val glyphHeight = tpag.sourceHeight
+                val shift = if (prop) glyphWidth + sep else maxWidth + sep
+                glyphs.add(
+                    com.mrpowergamerbr.butterscotch.data.FontGlyphData(
+                        character = ch,
+                        x = 0, y = 0,
+                        width = glyphWidth,
+                        height = glyphHeight,
+                        shift = shift,
+                        offset = 0,
+                        subimageIndex = subimageIdx,
+                    )
+                )
+            }
+            val newFontIdx = gd.fonts.size
+            gd.fonts.add(
+                com.mrpowergamerbr.butterscotch.data.FontData(
+                    name = "sprite_font_$newFontIdx",
+                    displayName = "sprite_font_$newFontIdx",
+                    emSize = maxHeight,
+                    tpagIndex = -1,
+                    scaleX = 1f,
+                    scaleY = 1f,
+                    glyphs = glyphs,
+                    spriteIndex = spriteIdx,
+                )
+            )
+            GMLValue.of(newFontIdx.toDouble())
+        } else {
+            GMLValue.of(-1.0)
+        }
+    }
 
     // ========== Window ==========
     f["window_set_caption"] = { _, _ -> GMLValue.ZERO }

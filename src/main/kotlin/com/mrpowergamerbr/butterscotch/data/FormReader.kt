@@ -174,11 +174,26 @@ class FormReader(private val filePath: String) {
         val count = buf.getInt(d)
         val pages = ArrayList<TexturePageData>(count)
 
+        // Detect format: newer GM:S versions have an extra GeneratedMips field
+        // Old format: [Scaled:u32, PngOffset:u32] (PNG offset at +4)
+        // New format: [Scaled:u32, GeneratedMips:u32, PngOffset:u32] (PNG offset at +8)
+        val pngFieldOffset = if (count > 0) {
+            val firstPtr = buf.getInt(d + 4)
+            val atPlus4 = buf.getInt(firstPtr + 4)
+            if (atPlus4 > 0 && atPlus4 + 4 < buf.capacity() &&
+                buf.get(atPlus4).toInt() and 0xFF == 0x89 &&
+                buf.get(atPlus4 + 1).toInt() and 0xFF == 0x50) {
+                4 // Old format: PNG offset at +4
+            } else {
+                8 // New format: PNG offset at +8
+            }
+        } else 4
+
         // Read all entries first to compute PNG sizes
         val offsets = mutableListOf<Int>()
         for (i in 0 until count) {
             val ptr = buf.getInt(d + 4 + i * 4)
-            val pngOffset = buf.getInt(ptr + 4)
+            val pngOffset = buf.getInt(ptr + pngFieldOffset)
             offsets.add(pngOffset)
         }
 
@@ -323,7 +338,7 @@ class FormReader(private val filePath: String) {
     }
 
     // ========== FONT ==========
-    private fun parseFont(chunk: Pair<Int, Int>): List<FontData> {
+    private fun parseFont(chunk: Pair<Int, Int>): MutableList<FontData> {
         val (d, _) = chunk
         val count = buf.getInt(d)
         val fonts = ArrayList<FontData>(count)

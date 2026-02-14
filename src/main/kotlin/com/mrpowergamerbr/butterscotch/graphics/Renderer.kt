@@ -548,91 +548,148 @@ void main() {
     fun drawText(x: Double, y: Double, text: String) {
         if (drawFont < 0 || drawFont >= gameData.fonts.size) return
         val font = gameData.fonts[drawFont]
-        if (font.tpagIndex < 0) return
-        val tpag = gameData.texturePageItems[font.tpagIndex]
+        val isSpriteFont = font.spriteIndex >= 0
 
-        val texId = ensureTexture(tpag.texturePageId)
-        if (texId < 0) return
+        if (!isSpriteFont) {
+            if (font.tpagIndex < 0) return
+            val tpag = gameData.texturePageItems[font.tpagIndex]
+            val texId = ensureTexture(tpag.texturePageId)
+            if (texId < 0) return
+            val texW = textureWidths[tpag.texturePageId].toFloat()
+            val texH = textureHeights[tpag.texturePageId].toFloat()
+            if (texW == 0f || texH == 0f) return
 
-        val texW = textureWidths[tpag.texturePageId].toFloat()
-        val texH = textureHeights[tpag.texturePageId].toFloat()
-        if (texW == 0f || texH == 0f) return
+            val cr = (drawColor and 0xFF) / 255f
+            val cg = ((drawColor shr 8) and 0xFF) / 255f
+            val cb = ((drawColor shr 16) and 0xFF) / 255f
+            val ca = drawAlpha.toFloat()
 
-        val cr = (drawColor and 0xFF) / 255f
-        val cg = ((drawColor shr 8) and 0xFF) / 255f
-        val cb = ((drawColor shr 16) and 0xFF) / 255f
-        val ca = drawAlpha.toFloat()
+            glBindTexture(GL_TEXTURE_2D, texId)
+            glUniform1i(uHasTexture, 1)
 
-        glBindTexture(GL_TEXTURE_2D, texId)
-        glUniform1i(uHasTexture, 1)
+            val lines = text.split("\n")
+            val lineHeight = font.emSize.toDouble()
+            val textHeight = lines.size * lineHeight
 
-        val lines = text.split("\n")
-        val lineHeight = font.emSize.toDouble()
-        val textHeight = lines.size * lineHeight
-
-        var startY = when (drawValign) {
-            1 -> y - textHeight / 2
-            2 -> y - textHeight
-            else -> y
-        }
-
-        vertexCount = 0
-
-        for (line in lines) {
-            val lineWidth = measureLineWidth(font, line)
-            var cx = when (drawHalign) {
-                1 -> x - lineWidth / 2
-                2 -> x - lineWidth
-                else -> x
+            var startY = when (drawValign) {
+                1 -> y - textHeight / 2
+                2 -> y - textHeight
+                else -> y
             }
 
-            for (ch in line) {
-                val glyph = font.glyphs.find { it.character == ch.code } ?: continue
-                val gx = tpag.sourceX + glyph.x
-                val gy = tpag.sourceY + glyph.y
-                val gu0 = gx / texW
-                val gv0 = gy / texH
-                val gu1 = (gx + glyph.width) / texW
-                val gv1 = (gy + glyph.height) / texH
+            vertexCount = 0
 
-                val dx = cx + glyph.offset
-                val dy = startY
-
-                if (vertexCount + 6 > maxVertices) {
-                    flushVertices(GL_TRIANGLES)
-                    vertexCount = 0
+            for (line in lines) {
+                val lineWidth = measureLineWidth(font, line)
+                var cx = when (drawHalign) {
+                    1 -> x - lineWidth / 2
+                    2 -> x - lineWidth
+                    else -> x
                 }
 
-                putQuad(dx, dy, dx + glyph.width, dy + glyph.height, gu0, gv0, gu1, gv1, cr, cg, cb, ca)
-                cx += glyph.shift
+                for (ch in line) {
+                    val glyph = font.glyphs.find { it.character == ch.code } ?: continue
+                    val gx = tpag.sourceX + glyph.x
+                    val gy = tpag.sourceY + glyph.y
+                    val gu0 = gx / texW
+                    val gv0 = gy / texH
+                    val gu1 = (gx + glyph.width) / texW
+                    val gv1 = (gy + glyph.height) / texH
+
+                    val dx = cx + glyph.offset
+                    val dy = startY
+
+                    if (vertexCount + 6 > maxVertices) {
+                        flushVertices(GL_TRIANGLES)
+                        vertexCount = 0
+                    }
+
+                    putQuad(dx, dy, dx + glyph.width, dy + glyph.height, gu0, gv0, gu1, gv1, cr, cg, cb, ca)
+                    cx += glyph.shift
+                }
+
+                startY += lineHeight
             }
 
-            startY += lineHeight
-        }
+            flushVertices(GL_TRIANGLES)
+        } else {
+            // Sprite-based font: each glyph is a sub-image of the sprite
+            val sprite = gameData.sprites[font.spriteIndex]
+            val cr = (drawColor and 0xFF) / 255f
+            val cg = ((drawColor shr 8) and 0xFF) / 255f
+            val cb = ((drawColor shr 16) and 0xFF) / 255f
+            val ca = drawAlpha.toFloat()
 
-        flushVertices(GL_TRIANGLES)
+            glUniform1i(uHasTexture, 1)
+
+            val lines = text.split("\n")
+            val lineHeight = font.emSize.toDouble()
+            val textHeight = lines.size * lineHeight
+
+            var startY = when (drawValign) {
+                1 -> y - textHeight / 2
+                2 -> y - textHeight
+                else -> y
+            }
+
+            vertexCount = 0
+            var currentTexPage = -1
+
+            for (line in lines) {
+                val lineWidth = measureLineWidth(font, line)
+                var cx = when (drawHalign) {
+                    1 -> x - lineWidth / 2
+                    2 -> x - lineWidth
+                    else -> x
+                }
+
+                for (ch in line) {
+                    val glyph = font.glyphs.find { it.character == ch.code } ?: continue
+                    if (glyph.subimageIndex < 0 || glyph.subimageIndex >= sprite.tpagIndices.size) continue
+                    val glyphTpag = gameData.texturePageItems[sprite.tpagIndices[glyph.subimageIndex]]
+
+                    // Flush and rebind if texture page changed
+                    if (glyphTpag.texturePageId != currentTexPage) {
+                        if (vertexCount > 0) flushVertices(GL_TRIANGLES)
+                        vertexCount = 0
+                        val texId = ensureTexture(glyphTpag.texturePageId)
+                        if (texId < 0) continue
+                        glBindTexture(GL_TEXTURE_2D, texId)
+                        currentTexPage = glyphTpag.texturePageId
+                    }
+
+                    val texW = textureWidths[glyphTpag.texturePageId].toFloat()
+                    val texH = textureHeights[glyphTpag.texturePageId].toFloat()
+                    if (texW == 0f || texH == 0f) continue
+
+                    val gu0 = glyphTpag.sourceX / texW
+                    val gv0 = glyphTpag.sourceY / texH
+                    val gu1 = (glyphTpag.sourceX + glyphTpag.sourceWidth) / texW
+                    val gv1 = (glyphTpag.sourceY + glyphTpag.sourceHeight) / texH
+
+                    val dx = cx + glyph.offset
+                    val dy = startY
+
+                    if (vertexCount + 6 > maxVertices) {
+                        flushVertices(GL_TRIANGLES)
+                        vertexCount = 0
+                    }
+
+                    putQuad(dx, dy, dx + glyphTpag.sourceWidth, dy + glyphTpag.sourceHeight, gu0, gv0, gu1, gv1, cr, cg, cb, ca)
+                    cx += glyph.shift
+                }
+
+                startY += lineHeight
+            }
+
+            if (vertexCount > 0) flushVertices(GL_TRIANGLES)
+        }
     }
 
     fun drawTextTransformed(x: Double, y: Double, text: String, xscale: Double, yscale: Double, angle: Double) {
         if (drawFont < 0 || drawFont >= gameData.fonts.size) return
         val font = gameData.fonts[drawFont]
-        if (font.tpagIndex < 0) return
-        val tpag = gameData.texturePageItems[font.tpagIndex]
-
-        val texId = ensureTexture(tpag.texturePageId)
-        if (texId < 0) return
-
-        val texW = textureWidths[tpag.texturePageId].toFloat()
-        val texH = textureHeights[tpag.texturePageId].toFloat()
-        if (texW == 0f || texH == 0f) return
-
-        val cr = (drawColor and 0xFF) / 255f
-        val cg = ((drawColor shr 8) and 0xFF) / 255f
-        val cb = ((drawColor shr 16) and 0xFF) / 255f
-        val ca = drawAlpha.toFloat()
-
-        glBindTexture(GL_TEXTURE_2D, texId)
-        glUniform1i(uHasTexture, 1)
+        val isSpriteFont = font.spriteIndex >= 0
 
         if (angle != 0.0 || xscale != 1.0 || yscale != 1.0) {
             modelMatrix.identity()
@@ -643,30 +700,96 @@ void main() {
             uploadModelMatrix()
         }
 
-        vertexCount = 0
-        var cx = x
-        for (ch in text) {
-            val glyph = font.glyphs.find { it.character == ch.code } ?: continue
-            val gx = tpag.sourceX + glyph.x
-            val gy = tpag.sourceY + glyph.y
-            val gu0 = gx / texW
-            val gv0 = gy / texH
-            val gu1 = (gx + glyph.width) / texW
-            val gv1 = (gy + glyph.height) / texH
+        if (!isSpriteFont) {
+            if (font.tpagIndex < 0) return
+            val tpag = gameData.texturePageItems[font.tpagIndex]
+            val texId = ensureTexture(tpag.texturePageId)
+            if (texId < 0) return
+            val texW = textureWidths[tpag.texturePageId].toFloat()
+            val texH = textureHeights[tpag.texturePageId].toFloat()
+            if (texW == 0f || texH == 0f) return
 
-            val dx = cx + glyph.offset
-            val dy = y
+            val cr = (drawColor and 0xFF) / 255f
+            val cg = ((drawColor shr 8) and 0xFF) / 255f
+            val cb = ((drawColor shr 16) and 0xFF) / 255f
+            val ca = drawAlpha.toFloat()
 
-            if (vertexCount + 6 > maxVertices) {
-                flushVertices(GL_TRIANGLES)
-                vertexCount = 0
+            glBindTexture(GL_TEXTURE_2D, texId)
+            glUniform1i(uHasTexture, 1)
+
+            vertexCount = 0
+            var cx = x
+            for (ch in text) {
+                val glyph = font.glyphs.find { it.character == ch.code } ?: continue
+                val gx = tpag.sourceX + glyph.x
+                val gy = tpag.sourceY + glyph.y
+                val gu0 = gx / texW
+                val gv0 = gy / texH
+                val gu1 = (gx + glyph.width) / texW
+                val gv1 = (gy + glyph.height) / texH
+
+                val dx = cx + glyph.offset
+                val dy = y
+
+                if (vertexCount + 6 > maxVertices) {
+                    flushVertices(GL_TRIANGLES)
+                    vertexCount = 0
+                }
+
+                putQuad(dx, dy, dx + glyph.width, dy + glyph.height, gu0, gv0, gu1, gv1, cr, cg, cb, ca)
+                cx += glyph.shift
             }
 
-            putQuad(dx, dy, dx + glyph.width, dy + glyph.height, gu0, gv0, gu1, gv1, cr, cg, cb, ca)
-            cx += glyph.shift
-        }
+            flushVertices(GL_TRIANGLES)
+        } else {
+            val sprite = gameData.sprites[font.spriteIndex]
+            val cr = (drawColor and 0xFF) / 255f
+            val cg = ((drawColor shr 8) and 0xFF) / 255f
+            val cb = ((drawColor shr 16) and 0xFF) / 255f
+            val ca = drawAlpha.toFloat()
 
-        flushVertices(GL_TRIANGLES)
+            glUniform1i(uHasTexture, 1)
+
+            vertexCount = 0
+            var cx = x
+            var currentTexPage = -1
+            for (ch in text) {
+                val glyph = font.glyphs.find { it.character == ch.code } ?: continue
+                if (glyph.subimageIndex < 0 || glyph.subimageIndex >= sprite.tpagIndices.size) continue
+                val glyphTpag = gameData.texturePageItems[sprite.tpagIndices[glyph.subimageIndex]]
+
+                if (glyphTpag.texturePageId != currentTexPage) {
+                    if (vertexCount > 0) flushVertices(GL_TRIANGLES)
+                    vertexCount = 0
+                    val texId = ensureTexture(glyphTpag.texturePageId)
+                    if (texId < 0) continue
+                    glBindTexture(GL_TEXTURE_2D, texId)
+                    currentTexPage = glyphTpag.texturePageId
+                }
+
+                val texW = textureWidths[glyphTpag.texturePageId].toFloat()
+                val texH = textureHeights[glyphTpag.texturePageId].toFloat()
+                if (texW == 0f || texH == 0f) continue
+
+                val gu0 = glyphTpag.sourceX / texW
+                val gv0 = glyphTpag.sourceY / texH
+                val gu1 = (glyphTpag.sourceX + glyphTpag.sourceWidth) / texW
+                val gv1 = (glyphTpag.sourceY + glyphTpag.sourceHeight) / texH
+
+                val dx = cx + glyph.offset
+                val dy = y
+
+                if (vertexCount + 6 > maxVertices) {
+                    flushVertices(GL_TRIANGLES)
+                    vertexCount = 0
+                }
+
+                putQuad(dx, dy, dx + glyphTpag.sourceWidth, dy + glyphTpag.sourceHeight, gu0, gv0, gu1, gv1, cr, cg, cb, ca)
+                cx += glyph.shift
+            }
+
+            if (vertexCount > 0) flushVertices(GL_TRIANGLES)
+        }
 
         if (angle != 0.0 || xscale != 1.0 || yscale != 1.0) {
             modelMatrix.identity()
@@ -794,9 +917,12 @@ void main() {
 
     // --- Texture loading ---
 
+    private val failedTextures = mutableSetOf<Int>()
+
     private fun ensureTexture(pageId: Int): Int {
         if (pageId < 0 || pageId >= textures.size) return -1
         if (textures[pageId] >= 0) return textures[pageId]
+        if (pageId in failedTextures) return -1
 
         val page = gameData.texturePages[pageId]
         val pngData = ByteArray(page.pngLength)
@@ -817,6 +943,7 @@ void main() {
             val pixels = stbi_load_from_memory(directBuf, w, h, comp, 4)
             if (pixels == null) {
                 System.err.println("Failed to decode texture page $pageId: ${stbi_failure_reason()}")
+                failedTextures.add(pageId)
                 return -1
             }
 
