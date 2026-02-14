@@ -27,6 +27,7 @@ class ButterscotchCLICommand : CliktCommand(name = "butterscotch") {
     private val drawMasks by option("--draw-masks", help = "Draw collision boxes: green=non-precise, blue=precise (50% opacity)").flag()
     private val alwaysLogUnknownInstructions by option("--always-log-unknown-instructions", help = "Always log unknown instructions instead of only logging once").flag()
 
+    private val listRoomInstances by option("--list-room-instances", help = "List all instances in a room (name or index)").multiple()
     private val debug by option("--debug", help = "Enable debug mode").flag()
     private val speed by option("--speed", help = "Game speed multiplier (e.g. 2.0 = twice as fast)").double().default(1.0)
     private val recordInputs by option("--record-inputs", help = "Record inputs to JSON file")
@@ -59,6 +60,30 @@ class ButterscotchCLICommand : CliktCommand(name = "butterscotch") {
         if (debugObj.isNotEmpty()) {
             // Just parse the data file (which prints debug info) and exit
             FormReader("undertale/game.unx").read()
+            return
+        }
+
+        if (listRoomInstances.isNotEmpty()) {
+            val gameData = FormReader("undertale/game.unx").read()
+            for (roomQuery in listRoomInstances) {
+                val roomIndex = roomQuery.toIntOrNull()
+                val room = if (roomIndex != null) {
+                    gameData.rooms.getOrNull(roomIndex)
+                } else {
+                    gameData.rooms.find { it.name == roomQuery }
+                }
+                if (room == null) {
+                    println("Room not found: $roomQuery")
+                    continue
+                }
+                val actualIndex = gameData.rooms.indexOf(room)
+                println("Room $actualIndex: ${room.name} (${room.width}x${room.height})")
+                println("  Instances (${room.instances.size}):")
+                for (inst in room.instances) {
+                    val objName = gameData.objects.getOrNull(inst.objectDefId)?.name ?: "unknown"
+                    println("    id=${inst.instanceId} obj=${inst.objectDefId} ($objName) pos=(${inst.x}, ${inst.y}) scale=(${inst.scaleX}, ${inst.scaleY}) rotation=${inst.rotation} creationCode=${inst.creationCodeId}")
+                }
+            }
             return
         }
 
