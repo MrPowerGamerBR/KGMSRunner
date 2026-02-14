@@ -917,9 +917,16 @@ class GameRunner(
                             inst.x = newX
                             inst.y = newY
                         }
+                        // GM: path_action_continue ends the path but keeps movement
+                        // Set speed/hspeed/vspeed so the instance continues in the same direction
+                        val spd = Math.abs(inst.pathSpeed)
+                        inst.speed = spd
+                        val dirRad = Math.toRadians(inst.direction)
+                        inst.hspeed = spd * Math.cos(dirRad)
+                        inst.vspeed = -spd * Math.sin(dirRad)
                         if (shouldTrace) {
                             val objName = if (inst.objectIndex in gameData.objects.indices) gameData.objects[inst.objectIndex].name else "??"
-                            println("[TRACE PATH] $objName (id=${inst.id}): path_action_continue at pathPos=${inst.pathPosition} frame=$frameCount")
+                            println("[TRACE PATH] $objName (id=${inst.id}): path_action_continue at pathPos=${inst.pathPosition} speed=$spd dir=${inst.direction} frame=$frameCount")
                         }
                         pathEnd(inst)
                         continue
@@ -969,9 +976,15 @@ class GameRunner(
                             inst.x = newX
                             inst.y = newY
                         }
+                        // GM: path_action_continue ends the path but keeps movement
+                        val spdR = Math.abs(inst.pathSpeed)
+                        inst.speed = spdR
+                        val dirRadR = Math.toRadians(inst.direction)
+                        inst.hspeed = spdR * Math.cos(dirRadR)
+                        inst.vspeed = -spdR * Math.sin(dirRadR)
                         if (shouldTrace) {
                             val objName = if (inst.objectIndex in gameData.objects.indices) gameData.objects[inst.objectIndex].name else "??"
-                            println("[TRACE PATH] $objName (id=${inst.id}): path_action_continue at pathPos=${inst.pathPosition} frame=$frameCount")
+                            println("[TRACE PATH] $objName (id=${inst.id}): path_action_continue at pathPos=${inst.pathPosition} speed=$spdR dir=${inst.direction} frame=$frameCount")
                         }
                         pathEnd(inst)
                         continue
